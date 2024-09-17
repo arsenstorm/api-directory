@@ -327,7 +327,7 @@ const SearchInput = forwardRef<
 			autocompleteState.isOpen,
 			autocompleteState.query,
 			onClose,
-			inputProps.onKeyDown,
+			inputProps,
 		],
 	);
 
