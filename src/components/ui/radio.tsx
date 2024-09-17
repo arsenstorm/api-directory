@@ -6,9 +6,8 @@ import clsx from "clsx";
 export function RadioGroup({
 	className,
 	...props
-}: { className?: string } & Omit<
-	Headless.RadioGroupProps,
-	"as" | "className"
+}: Readonly<
+	{ className?: string } & Omit<Headless.RadioGroupProps, "as" | "className">
 >) {
 	return (
 		<Headless.RadioGroup
@@ -28,7 +27,9 @@ export function RadioGroup({
 export function RadioField({
 	className,
 	...props
-}: { className?: string } & Omit<Headless.FieldProps, "as" | "className">) {
+}: Readonly<
+	{ className?: string } & Omit<Headless.FieldProps, "as" | "className">
+>) {
 	return (
 		<Headless.Field
 			data-slot="field"
@@ -126,9 +127,11 @@ export function Radio({
 	color = "dark/zinc",
 	className,
 	...props
-}: { color?: Color; className?: string } & Omit<
-	Headless.RadioProps,
-	"as" | "className" | "children"
+}: Readonly<
+	{ color?: Color; className?: string } & Omit<
+		Headless.RadioProps,
+		"as" | "className" | "children"
+	>
 >) {
 	return (
 		<Headless.Radio

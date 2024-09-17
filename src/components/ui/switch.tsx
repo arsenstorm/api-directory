@@ -7,7 +7,7 @@ import type React from "react";
 export function SwitchGroup({
 	className,
 	...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: Readonly<React.ComponentPropsWithoutRef<"div">>) {
 	return (
 		<div
 			data-slot="control"
@@ -26,7 +26,9 @@ export function SwitchGroup({
 export function SwitchField({
 	className,
 	...props
-}: { className?: string } & Omit<Headless.FieldProps, "as" | "className">) {
+}: Readonly<
+	{ className?: string } & Omit<Headless.FieldProps, "as" | "className">
+>) {
 	return (
 		<Headless.Field
 			data-slot="field"
@@ -145,10 +147,12 @@ export function Switch({
 	color = "dark/zinc",
 	className,
 	...props
-}: {
-	color?: Color;
-	className?: string;
-} & Omit<Headless.SwitchProps, "as" | "className" | "children">) {
+}: Readonly<
+	{
+		color?: Color;
+		className?: string;
+	} & Omit<Headless.SwitchProps, "as" | "className" | "children">
+>) {
 	return (
 		<Headless.Switch
 			data-slot="control"

@@ -2,7 +2,7 @@
 
 import * as Headless from "@headlessui/react";
 import clsx from "clsx";
-import { type default as React, forwardRef } from "react";
+import type { default as React } from "react";
 import { TouchTarget } from "./button";
 import { Link } from "./link";
 
@@ -42,7 +42,7 @@ export function Badge({
 	color = "zinc",
 	className,
 	...props
-}: BadgeProps & React.ComponentPropsWithoutRef<"span">) {
+}: Readonly<BadgeProps & React.ComponentPropsWithoutRef<"span">>) {
 	return (
 		<span
 			{...props}
@@ -55,18 +55,22 @@ export function Badge({
 	);
 }
 
-export const BadgeButton = forwardRef(function BadgeButton(
-	{
-		color = "zinc",
-		className,
-		children,
-		...props
-	}: BadgeProps & { className?: string; children: React.ReactNode } & (
-			| Omit<Headless.ButtonProps, "as" | "className">
-			| Omit<React.ComponentPropsWithoutRef<typeof Link>, "className">
-		),
-	ref: React.ForwardedRef<HTMLElement>,
-) {
+export const BadgeButton = function BadgeButton({
+	ref,
+	color = "zinc",
+	className,
+	children,
+	...props
+}: Readonly<
+	BadgeProps & { className?: string; children: React.ReactNode } & (
+			| (Omit<Headless.ButtonProps, "as" | "className"> & {
+					ref?: React.Ref<HTMLButtonElement>;
+			  })
+			| (Omit<React.ComponentPropsWithoutRef<typeof Link>, "className"> & {
+					ref?: React.Ref<HTMLAnchorElement>;
+			  })
+		)
+>) {
 	const classes = clsx(
 		className,
 		"group relative inline-flex rounded-md focus:outline-none data-[focus]:outline data-[focus]:outline-2 data-[focus]:outline-offset-2 data-[focus]:outline-blue-500",
@@ -89,4 +93,4 @@ export const BadgeButton = forwardRef(function BadgeButton(
 			</TouchTarget>
 		</Headless.Button>
 	);
-});
+};

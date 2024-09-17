@@ -22,7 +22,7 @@ export function Avatar({
 	alt = "",
 	className,
 	...props
-}: AvatarProps & React.ComponentPropsWithoutRef<"span">) {
+}: Readonly<AvatarProps & React.ComponentPropsWithoutRef<"span">>) {
 	return (
 		<span
 			data-slot="avatar"
@@ -79,15 +79,17 @@ export const AvatarButton = function AvatarButton({
 	alt,
 	className,
 	...props
-}: AvatarProps &
-	(
-		| (Omit<Headless.ButtonProps, "as" | "className"> & {
-				ref?: React.Ref<HTMLButtonElement>;
-		  })
-		| (Omit<React.ComponentPropsWithoutRef<typeof Link>, "className"> & {
-				ref?: React.Ref<HTMLAnchorElement>;
-		  })
-	)) {
+}: Readonly<
+	AvatarProps &
+		(
+			| (Omit<Headless.ButtonProps, "as" | "className"> & {
+					ref?: React.Ref<HTMLButtonElement>;
+			  })
+			| (Omit<React.ComponentPropsWithoutRef<typeof Link>, "className"> & {
+					ref?: React.Ref<HTMLAnchorElement>;
+			  })
+		)
+>) {
 	const classes = clsx(
 		className,
 		square ? "rounded-[20%]" : "rounded-full",

@@ -6,7 +6,7 @@ import { Link } from "./link";
 export function Text({
 	className,
 	...props
-}: React.ComponentPropsWithoutRef<"p">) {
+}: Readonly<React.ComponentPropsWithoutRef<"p">>) {
 	return (
 		<p
 			data-slot="text"
@@ -22,7 +22,7 @@ export function Text({
 export function TextLink({
 	className,
 	...props
-}: React.ComponentPropsWithoutRef<typeof Link>) {
+}: Readonly<React.ComponentPropsWithoutRef<typeof Link>>) {
 	return (
 		<Link
 			{...props}
@@ -37,7 +37,7 @@ export function TextLink({
 export function Strong({
 	className,
 	...props
-}: React.ComponentPropsWithoutRef<"strong">) {
+}: Readonly<React.ComponentPropsWithoutRef<"strong">>) {
 	return (
 		<strong
 			{...props}
@@ -49,7 +49,7 @@ export function Strong({
 export function Code({
 	className,
 	...props
-}: React.ComponentPropsWithoutRef<"code">) {
+}: Readonly<React.ComponentPropsWithoutRef<"code">>) {
 	return (
 		<code
 			{...props}

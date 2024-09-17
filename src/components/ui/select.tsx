@@ -2,16 +2,17 @@
 
 import * as Headless from "@headlessui/react";
 import clsx from "clsx";
-import { type default as React, forwardRef } from "react";
 
-export const Select = forwardRef(function Select(
-	{
-		className,
-		multiple,
-		...props
-	}: { className?: string } & Omit<Headless.SelectProps, "as" | "className">,
-	ref: React.ForwardedRef<HTMLSelectElement>,
-) {
+export const Select = function Select({
+	ref,
+	className,
+	multiple,
+	...props
+}: Readonly<{
+	ref?: React.Ref<HTMLSelectElement>;
+	className?: string;
+	multiple?: boolean;
+} & Omit<Headless.SelectProps, "as" | "className">>) {
 	return (
 		<span
 			data-slot="control"
@@ -81,4 +82,4 @@ export const Select = forwardRef(function Select(
 			)}
 		</span>
 	);
-});
+};
