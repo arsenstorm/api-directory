@@ -17,6 +17,7 @@
     "@heroicons/react": "^2.1.5",
     "@mantine/hooks": "^7.12.2",
     "@types/react-highlight-words": "^0.20.0",
+    "@unkey/api": "^0.26.1",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.33.0",

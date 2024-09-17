@@ -7,7 +7,7 @@ import type React from "react";
 export function CheckboxGroup({
 	className,
 	...props
-}: React.ComponentPropsWithoutRef<"div">) {
+}: Readonly<React.ComponentPropsWithoutRef<"div">>) {
 	return (
 		<div
 			data-slot="control"
@@ -26,7 +26,9 @@ export function CheckboxGroup({
 export function CheckboxField({
 	className,
 	...props
-}: { className?: string } & Omit<Headless.FieldProps, "as" | "className">) {
+}: Readonly<
+	{ className?: string } & Omit<Headless.FieldProps, "as" | "className">
+>) {
 	return (
 		<Headless.Field
 			data-slot="field"
@@ -123,10 +125,12 @@ export function Checkbox({
 	color = "dark/zinc",
 	className,
 	...props
-}: {
-	color?: Color;
-	className?: string;
-} & Omit<Headless.CheckboxProps, "as" | "className">) {
+}: Readonly<
+	{
+		color?: Color;
+		className?: string;
+	} & Omit<Headless.CheckboxProps, "as" | "className">
+>) {
 	return (
 		<Headless.Checkbox
 			data-slot="control"

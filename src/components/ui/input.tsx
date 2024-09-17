@@ -2,11 +2,11 @@
 
 import * as Headless from "@headlessui/react";
 import clsx from "clsx";
-import { type default as React, forwardRef } from "react";
+import type { default as React } from "react";
 
 export function InputGroup({
 	children,
-}: React.ComponentPropsWithoutRef<"span">) {
+}: Readonly<React.ComponentPropsWithoutRef<"span">>) {
 	return (
 		<span
 			data-slot="control"
@@ -24,26 +24,25 @@ export function InputGroup({
 }
 
 const dateTypes = ["date", "datetime-local", "month", "time", "week"];
-type DateType = (typeof dateTypes)[number];
+type DateType = "date" | "datetime-local" | "month" | "time" | "week";
 
-export const Input = forwardRef(function Input(
-	{
-		className,
-		...props
-	}: {
-		className?: string;
-		type?:
-			| "email"
-			| "number"
-			| "password"
-			| "search"
-			| "tel"
-			| "text"
-			| "url"
-			| DateType;
-	} & Omit<Headless.InputProps, "as" | "className">,
-	ref: React.ForwardedRef<HTMLInputElement>,
-) {
+export const Input = function Input({
+	ref,
+	className,
+	...props
+}: {
+	ref?: React.Ref<HTMLInputElement>;
+	className?: string;
+	type?:
+		| "email"
+		| "number"
+		| "password"
+		| "search"
+		| "tel"
+		| "text"
+		| "url"
+		| DateType;
+} & Omit<Headless.InputProps, "as" | "className">) {
 	return (
 		<span
 			data-slot="control"
@@ -103,4 +102,4 @@ export const Input = forwardRef(function Input(
 			/>
 		</span>
 	);
-});
+};

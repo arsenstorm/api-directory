@@ -2,7 +2,7 @@
 
 import * as Headless from "@headlessui/react";
 import clsx from "clsx";
-import { type default as React, forwardRef } from "react";
+import type { default as React } from "react";
 import { Link } from "./link";
 
 const styles = {
@@ -169,19 +169,24 @@ type ButtonProps = (
 		| Omit<React.ComponentPropsWithoutRef<typeof Link>, "className">
 	);
 
-export const Button = forwardRef(function Button(
-	{ color, outline, plain, className, children, ...props }: ButtonProps,
-	ref: React.ForwardedRef<HTMLElement>,
-) {
-	const classes = clsx(
-		className,
-		styles.base,
-		outline
-			? styles.outline
-			: plain
-				? styles.plain
-				: clsx(styles.solid, styles.colors[color ?? "dark/zinc"]),
-	);
+export const Button = function Button({
+	ref,
+	color,
+	outline,
+	plain,
+	className,
+	children,
+	...props
+}: ButtonProps & {
+	ref?: React.RefObject<HTMLElement>;
+}) {
+	function getButtonStyle() {
+		if (outline) return styles.outline;
+		if (plain) return styles.plain;
+		return clsx(styles.solid, styles.colors[color ?? "dark/zinc"]);
+	}
+
+	const classes = clsx(className, styles.base, getButtonStyle());
 
 	return "href" in props ? (
 		<Link
@@ -200,12 +205,14 @@ export const Button = forwardRef(function Button(
 			<TouchTarget>{children}</TouchTarget>
 		</Headless.Button>
 	);
-});
+};
 
 /**
  * Expand the hit area to at least 44×44px on touch devices
  */
-export function TouchTarget({ children }: { children: React.ReactNode }) {
+export function TouchTarget({
+	children,
+}: { readonly children: React.ReactNode }) {
 	return (
 		<>
 			<span
