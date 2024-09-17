@@ -62,6 +62,23 @@ function useAutocomplete({ close }: { close: () => void }) {
 		}
 	}
 
+	function filterApiEntries(query: string) {
+		return ([key, api]: [string, any]) => {
+			const searchString =
+				`${key} ${api.name} ${api.one_liner} ${api.tag}`.toLowerCase();
+			return searchString.includes(query.toLowerCase());
+		};
+	}
+
+	function mapApiToResult([key, api]: [string, any]): Result {
+		return {
+			url: `/${key}`,
+			title: api.name,
+			description: api.one_liner,
+			tag: api.tag,
+		};
+	}
+
 	const [autocomplete] = useState<Autocomplete>(() =>
 		createAutocomplete<
 			Result,
@@ -87,19 +104,10 @@ function useAutocomplete({ close }: { close: () => void }) {
 						sourceId: "apis",
 						getItems() {
 							return Object.entries(config.api)
-								.filter(([key, api]) => {
-									const searchString =
-										`${key} ${api.name} ${api.one_liner} ${api.tag}`.toLowerCase();
-									return searchString.includes(query.toLowerCase());
-								})
-								.map(([key, api]) => ({
-									url: `/${key}`,
-									title: api.name,
-									description: api.one_liner,
-									tag: api.tag,
-								}));
+								.filter(filterApiEntries(query))
+								.map(mapApiToResult);
 						},
-						getItemUrl({ item }: { item: any }) {
+						getItemUrl({ item }: { item: Result }) {
 							return item.url;
 						},
 						onSelect: navigate,
@@ -323,12 +331,7 @@ const SearchInput = forwardRef<
 				inputProps.onKeyDown(event);
 			}
 		},
-		[
-			autocompleteState.isOpen,
-			autocompleteState.query,
-			onClose,
-			inputProps,
-		],
+		[autocompleteState.isOpen, autocompleteState.query, onClose, inputProps],
 	);
 
 	return (
