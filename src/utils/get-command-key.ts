@@ -1,7 +1,7 @@
-import { useOs } from "@mantine/hooks";
+import { useOs as getOs } from "@mantine/hooks";
 
 export function getCommandKey() {
-	const os = useOs();
+	const os = getOs();
 
 	if (os === "undetermined") {
 		return { device: "desktop", key: "Ctrl" };
