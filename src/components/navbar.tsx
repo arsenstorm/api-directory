@@ -1,31 +1,49 @@
 "use client";
 
-import { PlusGrid, PlusGridItem, PlusGridRow } from "./plus-grid";
-
-// UI
-import { Link } from "./ui/link";
-import { Button } from "@/components/ui/button";
-
-// Icons
-import { Logo } from "./logo";
-
 import {
 	Disclosure,
 	DisclosureButton,
 	DisclosurePanel,
 } from "@headlessui/react";
-import { Bars2Icon } from "@heroicons/react/24/solid";
+import { useCallback } from "react";
 import { motion } from "framer-motion";
 import { MobileSearch, Search } from "./search";
+import { PlusGrid, PlusGridItem, PlusGridRow } from "./plus-grid";
+// UI
+import { Link } from "@/components/ui/link";
+import { Avatar } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+
+// Icons
+import { Logo } from "./logo";
+import { Bars2Icon } from "@heroicons/react/24/solid";
+
+// Auth
+import { signIn, useSession } from "next-auth/react";
 
 const links = [{ href: "", label: "..." }];
 
 function DesktopNav() {
+	const { data: session } = useSession();
+
+	const signInWithGitHub = useCallback(() => {
+		signIn("github");
+	}, []);
+
 	return (
 		<nav className="relative hidden lg:flex">
 			<PlusGridItem className="relative flex">
 				<div className="flex items-center px-4 p-3 text-base font-medium text-gray-950">
-					<Button>Login with GitHub</Button>
+					{session ? (
+						<Link href="/profile" className="flex items-center gap-2">
+							<Avatar src={session.user?.image} className="size-8" />
+							<p className="text-base font-medium text-gray-950">
+								{session.user?.name}
+							</p>
+						</Link>
+					) : (
+						<Button onClick={signInWithGitHub}>Login with GitHub</Button>
+					)}
 				</div>
 			</PlusGridItem>
 		</nav>
@@ -44,6 +62,12 @@ function MobileNavButton() {
 }
 
 function MobileNav() {
+	const { data: session } = useSession();
+
+	const signInWithGitHub = useCallback(() => {
+		signIn("github");
+	}, []);
+
 	return (
 		<DisclosurePanel className="lg:hidden">
 			<div className="flex flex-col gap-6 py-4">
@@ -56,9 +80,18 @@ function MobileNav() {
 						rotateX: { duration: 0.3, delay: links.length * 0.1 },
 					}}
 				>
-					<Button className="w-full" color="dark">
-						Login with GitHub
-					</Button>
+					{session ? (
+						<Link href="/profile" className="flex items-center gap-2">
+							<Avatar src={session.user?.image} className="size-8" />
+							<p className="text-base font-medium text-gray-950">
+								Logged in as {session.user?.name}
+							</p>
+						</Link>
+					) : (
+						<Button className="w-full" color="dark" onClick={signInWithGitHub}>
+							Login with GitHub
+						</Button>
+					)}
 				</motion.div>
 			</div>
 			<div className="absolute left-1/2 w-screen -translate-x-1/2">
