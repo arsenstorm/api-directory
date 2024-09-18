@@ -40,7 +40,7 @@ export default async function Page({
 			<div className="mt-4">
 				<Text>
 					To use this API, make a <Code>POST</Code> request to this endpoint:{" "}
-					<Code>https://api.directory/v1/{id}</Code>.
+					<Code>https://request.directory/v1/{id}</Code>.
 				</Text>
 			</div>
 			<Divider className="my-8" />
