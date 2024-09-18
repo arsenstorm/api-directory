@@ -26,7 +26,7 @@ export default function RootLayout({
 				/>
 			</head>
 			<body
-				className={clsx("px-4 bg-neutral-50", "min-h-screen flex flex-col")}
+				className={clsx("px-4 bg-neutral-100/50", "min-h-screen flex flex-col")}
 			>
 				<Navbar />
 				<div className="flex-1">{children}</div>
