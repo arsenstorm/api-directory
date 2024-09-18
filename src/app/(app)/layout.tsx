@@ -5,6 +5,7 @@ import clsx from "clsx";
 // Components
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { getConfig } from "@/actions/get-config";
 
 export const metadata: Metadata = {
 	title: "Request Directory",
@@ -12,11 +13,13 @@ export const metadata: Metadata = {
 		"An open-source alternative to RapidAPI, allowing you to use APIs for pretty much anything with a single API key!",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
 	children,
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	const config = await getConfig();
+
 	return (
 		<html lang="en">
 			<head>
@@ -28,7 +31,7 @@ export default function RootLayout({
 			<body
 				className={clsx("px-4 bg-neutral-100/50", "min-h-screen flex flex-col")}
 			>
-				<Navbar />
+				<Navbar config={config} />
 				<div className="flex-1">{children}</div>
 				<Footer />
 			</body>

@@ -19,11 +19,13 @@
     "@unkey/api": "^0.26.1",
     "clsx": "^2.1.1",
     "dotenv": "^16.4.5",
+    "form-data": "^4.0.0",
     "framer-motion": "^11.5.4",
     "next": "15.0.0-rc.0",
     "react": "19.0.0-rc-f994737d14-20240522",
     "react-dom": "19.0.0-rc-f994737d14-20240522",
-    "react-highlight-words": "^0.20.0"
+    "react-highlight-words": "^0.20.0",
+    "toml": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",

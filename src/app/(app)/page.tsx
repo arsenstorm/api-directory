@@ -2,10 +2,12 @@ import { Badge } from "@/components/ui/badge";
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Link } from "@/components/ui/link";
 import { Text } from "@/components/ui/text";
-import { request_config as config } from "@/utils/config";
+import { getConfig } from "@/actions/get-config";
 import { getTagColor } from "@/utils/get-tag-color";
 
-export default function Home() {
+export default async function Home() {
+	const config = await getConfig();
+
 	return (
 		<main>
 			<Heading>Request Directory</Heading>

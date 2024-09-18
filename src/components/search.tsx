@@ -23,7 +23,6 @@ import { Dialog, DialogPanel, DialogBackdrop } from "@headlessui/react";
 import clsx from "clsx";
 
 import { getCommandKey } from "@/utils/get-command-key";
-import { request_config as config } from "@/utils/config";
 
 export interface Result extends BaseItem {
 	url: string;
@@ -40,7 +39,10 @@ type Autocomplete = AutocompleteApi<
 	React.KeyboardEvent
 >;
 
-function useAutocomplete({ close }: { close: () => void }) {
+function useAutocomplete({
+	close,
+	config,
+}: { close: () => void; config: any }) {
 	const id = useId();
 	const router = useRouter();
 	const [autocompleteState, setAutocompleteState] = useState<
@@ -188,12 +190,14 @@ function HighlightQuery({
 }
 
 function SearchResult({
+	config,
 	result,
 	resultIndex,
 	autocomplete,
 	collection,
 	query,
 }: {
+	readonly config: any;
 	readonly result: Result;
 	readonly resultIndex: number;
 	readonly autocomplete: Autocomplete;
@@ -209,7 +213,7 @@ function SearchResult({
 				`${key} ${api.name} ${api.one_liner} ${api.tag}`.toLowerCase();
 			return searchString.includes(result.title.toLowerCase());
 		},
-	);
+	) as any;
 
 	// If a match is found, extract the one_liner for the hierarchy
 	const hierarchy = matchingApi ? [matchingApi[1].one_liner] : [];
@@ -271,7 +275,9 @@ function SearchResults({
 	autocomplete,
 	query,
 	collection,
+	config,
 }: {
+	readonly config: any;
 	readonly autocomplete: Autocomplete;
 	readonly query: string;
 	readonly collection?: AutocompleteCollection<Result>;
@@ -291,6 +297,7 @@ function SearchResults({
 		<ul {...autocomplete.getListProps()}>
 			{collection.items.map((result, resultIndex) => (
 				<SearchResult
+					config={config}
 					key={result.url}
 					result={result}
 					resultIndex={resultIndex}
@@ -357,10 +364,12 @@ const SearchInput = forwardRef<
 });
 
 const SearchResultsPanel = ({
+	config,
 	panelRef,
 	autocomplete,
 	autocompleteState,
 }: {
+	readonly config: any;
 	readonly panelRef: React.RefObject<HTMLDivElement>;
 	readonly autocomplete: Autocomplete;
 	readonly autocompleteState: AutocompleteState<Result> | EmptyObject;
@@ -372,6 +381,7 @@ const SearchResultsPanel = ({
 	>
 		{autocompleteState.isOpen && (
 			<SearchResults
+				config={config}
 				autocomplete={autocomplete}
 				query={autocompleteState.query}
 				collection={autocompleteState.collections[0]}
@@ -387,7 +397,9 @@ const SearchDialogContent = ({
 	autocomplete,
 	autocompleteState,
 	onClose,
+	config,
 }: {
+	readonly config: any;
 	readonly formRef: React.RefObject<HTMLFormElement>;
 	readonly inputRef: React.RefObject<HTMLInputElement>;
 	readonly panelRef: React.RefObject<HTMLDivElement>;
@@ -407,6 +419,7 @@ const SearchDialogContent = ({
 				onClose={onClose}
 			/>
 			<SearchResultsPanel
+				config={config}
 				panelRef={panelRef}
 				autocomplete={autocomplete}
 				autocompleteState={autocompleteState}
@@ -417,10 +430,12 @@ const SearchDialogContent = ({
 
 function SearchDialog({
 	open,
+	config,
 	setOpen,
 	className,
 }: {
 	readonly open: boolean;
+	readonly config: any;
 	readonly setOpen: (open: boolean) => void;
 	readonly className?: string;
 }) {
@@ -431,6 +446,7 @@ function SearchDialog({
 		close() {
 			setOpen(false);
 		},
+		config,
 	});
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
@@ -487,6 +503,7 @@ function SearchDialog({
 					className="mx-auto transform-gpu overflow-hidden rounded-lg bg-zinc-50 shadow-xl ring-1 ring-zinc-900/7.5 data-[closed]:scale-95 data-[closed]:opacity-0 data-[enter]:duration-300 data-[leave]:duration-200 data-[enter]:ease-out data-[leave]:ease-in sm:max-w-xl dark:bg-zinc-900 dark:ring-zinc-800"
 				>
 					<SearchDialogContent
+						config={config}
 						formRef={formRef}
 						inputRef={inputRef}
 						panelRef={panelRef}
@@ -524,7 +541,7 @@ function useSearchProps() {
 	};
 }
 
-export function Search() {
+export function Search({ config }: Readonly<{ config: any }>) {
 	const [modifierKey, setModifierKey] = useState<string>();
 	const { buttonProps, dialogProps } = useSearchProps();
 
@@ -549,13 +566,23 @@ export function Search() {
 				</kbd>
 			</button>
 			<Suspense fallback={null}>
-				<SearchDialog className="hidden lg:block" {...dialogProps} />
+				<SearchDialog
+					className="hidden lg:block"
+					config={config}
+					{...dialogProps}
+				/>
 			</Suspense>
 		</div>
 	);
 }
 
-export function MobileSearch({ className }: { readonly className?: string }) {
+export function MobileSearch({
+	config,
+	className,
+}: {
+	readonly config: any;
+	readonly className?: string;
+}) {
 	const { buttonProps, dialogProps } = useSearchProps();
 
 	return (
@@ -569,7 +596,7 @@ export function MobileSearch({ className }: { readonly className?: string }) {
 				<SearchIcon className="size-6 stroke-zinc-900 dark:stroke-white" />
 			</button>
 			<Suspense fallback={null}>
-				<SearchDialog className="lg:hidden" {...dialogProps} />
+				<SearchDialog className="lg:hidden" config={config} {...dialogProps} />
 			</Suspense>
 		</div>
 	);

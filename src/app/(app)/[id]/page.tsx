@@ -1,17 +1,19 @@
-import { request_config as config } from "@/utils/config";
+import { getConfig } from "@/actions/get-config";
 import { notFound } from "next/navigation";
 
 // UI
 import { Heading } from "@/components/ui/heading";
 import { Code, Text } from "@/components/ui/text";
 
-export default function Page({
+export default async function Page({
 	params: { id },
 }: {
 	readonly params: {
 		readonly id: string;
 	};
 }) {
+	const config = await getConfig();
+
 	const api = config.api?.[id as keyof typeof config.api] ?? undefined;
 
 	if (!api) {
