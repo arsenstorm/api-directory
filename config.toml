@@ -1,3 +1,6 @@
+[apis]
+enabled = true
+
 [api.nudenet]
 enabled = true
 name = "NudeNet"

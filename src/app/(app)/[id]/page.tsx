@@ -2,8 +2,10 @@ import { getConfig } from "@/actions/get-config";
 import { notFound } from "next/navigation";
 
 // UI
-import { Heading } from "@/components/ui/heading";
+import { Heading, Subheading } from "@/components/ui/heading";
 import { Code, Text } from "@/components/ui/text";
+import { Playground } from "./page.client";
+import { Divider } from "@/components/ui/divider";
 
 export default async function Page({
 	params: { id },
@@ -20,6 +22,17 @@ export default async function Page({
 		return notFound();
 	}
 
+	let configDetails: any;
+
+	try {
+		configDetails = await import(`@/app/v1/${id}/config`).then(
+			(mod) => mod.default,
+		);
+	} catch (error) {
+		console.error(error);
+		return notFound();
+	}
+
 	return (
 		<div>
 			<Heading>{api.name}</Heading>
@@ -30,6 +43,13 @@ export default async function Page({
 					<Code>https://api.directory/v1/{id}</Code>.
 				</Text>
 			</div>
+			<Divider className="my-8" />
+			<Subheading>Playground</Subheading>
+			<Text>
+				Test the API for yourself. This will use credits from your account.
+			</Text>
+			<Divider className="my-8" soft />
+			<Playground config={configDetails} id={id} />
 		</div>
 	);
 }

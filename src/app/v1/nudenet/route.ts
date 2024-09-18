@@ -1,6 +1,20 @@
+import { isApiEnabled } from "@/actions/is-api-enabled";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
+	const isEnabled = await isApiEnabled("nudenet");
+
+	if (!isEnabled) {
+		return NextResponse.json(
+			{
+				message: "This API is not enabled.",
+			},
+			{
+				status: 400,
+			},
+		);
+	}
+
 	let imageBuffer: Buffer;
 	let imageName: string;
 	let imageType: string;
@@ -27,7 +41,7 @@ export async function POST(req: NextRequest) {
 			"application/octet-stream";
 	} else {
 		const requestFormData = await req.formData();
-		const image = requestFormData.get("file") as File;
+		const image = requestFormData.get("image") as File;
 		if (!image) {
 			return NextResponse.json({ message: "No image provided" }, {
 				status: 400,

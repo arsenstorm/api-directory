@@ -41,6 +41,7 @@ export const Input = function Input({
 		| "tel"
 		| "text"
 		| "url"
+		| "file"
 		| DateType;
 } & Omit<Headless.InputProps, "as" | "className">) {
 	return (
