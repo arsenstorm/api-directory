@@ -6,9 +6,6 @@ import clsx from "clsx";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
-// Auth
-import { SessionProvider } from "next-auth/react";
-
 export const metadata: Metadata = {
 	title: "Request Directory",
 	description:
@@ -31,11 +28,9 @@ export default function RootLayout({
 			<body
 				className={clsx("px-4 bg-neutral-50", "min-h-screen flex flex-col")}
 			>
-				<SessionProvider>
-					<Navbar />
-					<div className="flex-1">{children}</div>
-					<Footer />
-				</SessionProvider>
+				<Navbar />
+				<div className="flex-1">{children}</div>
+				<Footer />
 			</body>
 		</html>
 	);

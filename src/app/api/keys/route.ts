@@ -1,11 +1,13 @@
-import { auth } from "@/auth";
 import { unkey } from "@/utils/get-unkey";
+import { createClient } from "@/utils/supabase/server";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-	const session = await auth();
+	const supabase = createClient();
+	
+	const { data: { user } } = await supabase.auth.getUser();
 
-	const userId = session?.user?.id ?? undefined;
+	const userId = user?.id ?? undefined;
 
 	if (!userId) {
 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -49,9 +51,11 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-	const session = await auth();
+	const supabase = createClient();
+	
+	const { data: { user } } = await supabase.auth.getUser();
 
-	const userId = session?.user?.id ?? undefined;
+	const userId = user?.id ?? undefined;
 
 	if (!userId) {
 		return NextResponse.json({ message: "Unauthorized" }, { status: 401 });

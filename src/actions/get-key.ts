@@ -1,11 +1,14 @@
 "use server";
 
-import { auth } from "@/auth";
 import { unkey } from "@/utils/get-unkey";
+import { createClient } from "@/utils/supabase/server";
 
 export async function getKey(keyId?: string) {
-	const session = await auth();
-	const userId = session?.user?.id ?? undefined;
+	const supabase = createClient();
+	
+	const { data: { user } } = await supabase.auth.getUser();
+
+	const userId = user?.id ?? undefined;
 
 	if (!userId) {
 		return [];

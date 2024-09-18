@@ -5,7 +5,7 @@ import {
 	DisclosureButton,
 	DisclosurePanel,
 } from "@headlessui/react";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { MobileSearch, Search } from "./search";
 import { PlusGrid, PlusGridItem, PlusGridRow } from "./plus-grid";
@@ -18,27 +18,31 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "./logo";
 import { Bars2Icon } from "@heroicons/react/24/solid";
 
-// Auth
-import { signIn, useSession } from "next-auth/react";
+// Supabase
+import { createClient } from "@/utils/supabase/client";
+import type { Session } from "@supabase/supabase-js";
 
 const links = [{ href: "", label: "..." }];
 
-function DesktopNav() {
-	const { data: session } = useSession();
-
-	const signInWithGitHub = useCallback(() => {
-		signIn("github");
-	}, []);
-
+function DesktopNav({
+	session,
+	signInWithGitHub,
+}: Readonly<{
+	session: Session | null;
+	signInWithGitHub: () => Promise<void>;
+}>) {
 	return (
 		<nav className="relative hidden lg:flex">
 			<PlusGridItem className="relative flex">
 				<div className="flex items-center px-4 p-3 text-base font-medium text-gray-950">
 					{session ? (
 						<Link href="/profile" className="flex items-center gap-2">
-							<Avatar src={session.user?.image} className="size-8" />
+							<Avatar
+								src={session.user?.user_metadata?.avatar_url}
+								className="size-8"
+							/>
 							<p className="text-base font-medium text-gray-950">
-								{session.user?.name}
+								{session.user?.user_metadata?.name ?? "Guest"}
 							</p>
 						</Link>
 					) : (
@@ -61,13 +65,13 @@ function MobileNavButton() {
 	);
 }
 
-function MobileNav() {
-	const { data: session } = useSession();
-
-	const signInWithGitHub = useCallback(() => {
-		signIn("github");
-	}, []);
-
+function MobileNav({
+	session,
+	signInWithGitHub,
+}: Readonly<{
+	session: Session | null;
+	signInWithGitHub: () => Promise<void>;
+}>) {
 	return (
 		<DisclosurePanel className="lg:hidden">
 			<div className="flex flex-col gap-6 py-4">
@@ -82,9 +86,12 @@ function MobileNav() {
 				>
 					{session ? (
 						<Link href="/profile" className="flex items-center gap-2">
-							<Avatar src={session.user?.image} className="size-8" />
+							<Avatar
+								src={session.user?.user_metadata?.avatar_url}
+								className="size-8"
+							/>
 							<p className="text-base font-medium text-gray-950">
-								Logged in as {session.user?.name}
+								Logged in as {session.user?.user_metadata?.name ?? "Guest"}
 							</p>
 						</Link>
 					) : (
@@ -103,6 +110,29 @@ function MobileNav() {
 }
 
 export default function Navbar() {
+	const supabase = createClient();
+	const [session, setSession] = useState<Session | null>(null);
+
+	const signInWithGitHub = useCallback(async () => {
+		await supabase.auth.signInWithOAuth({
+			provider: "github",
+			options: {
+				redirectTo: `${window.location.origin}/profile`,
+			},
+		});
+	}, [supabase]);
+
+	useEffect(() => {
+		async function getSession() {
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
+			setSession(session);
+		}
+
+		getSession();
+	}, [supabase]);
+
 	return (
 		<Disclosure as="header" className="my-8">
 			<PlusGrid>
@@ -117,7 +147,7 @@ export default function Navbar() {
 							<Search />
 						</PlusGridItem>
 					</div>
-					<DesktopNav />
+					<DesktopNav session={session} signInWithGitHub={signInWithGitHub} />
 					<div className="flex lg:hidden flex-row items-center gap-0.5">
 						<div className="flex size-12 items-center justify-center self-center rounded-lg hover:bg-black/5 lg:hidden">
 							<MobileSearch />
@@ -126,7 +156,7 @@ export default function Navbar() {
 					</div>
 				</PlusGridRow>
 			</PlusGrid>
-			<MobileNav />
+			<MobileNav session={session} signInWithGitHub={signInWithGitHub} />
 		</Disclosure>
 	);
 }
