@@ -210,6 +210,11 @@ export function Inputs({
 						);
 					})}
 					<Field>
+						{/*
+						NOTE: I’ve deliberately made the button always active, even if
+						inputs are invalid or empty. This is to reflect how the API
+						will behave in production.
+						*/}
 						<Button type="submit" color="dark">
 							Make API Request
 						</Button>
