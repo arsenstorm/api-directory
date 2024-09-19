@@ -1,6 +1,8 @@
 import { isApiEnabled } from "@/actions/is-api-enabled";
 import { type NextRequest, NextResponse } from "next/server";
 
+const port = 2000;
+
 export async function POST(req: NextRequest) {
 	const isEnabled = await isApiEnabled("nudenet");
 
@@ -69,7 +71,7 @@ export async function POST(req: NextRequest) {
 
 	const fullBody = Buffer.concat([preamble, imageBuffer, ending]);
 
-	const response = await fetch("http://localhost:8080/infer", {
+	const response = await fetch(`http://localhost:${port}/infer`, {
 		method: "POST",
 		headers: {
 			"Content-Length": fullBody.length.toString(),
