@@ -1,14 +1,18 @@
+[database]
+supabase = "managed" # or "local"
+
 [apis]
 enabled = true
 
-[api.nudenet]
+[api.nudenet] # docker run -it -p2000:8080 ghcr.io/notai-tech/nudenet:latest
+type = "external" # default is "internal" - since this is external, we depend on the docker container to be running
 enabled = true
 name = "NudeNet"
 one_liner = "Detects nudity in images."
 tag = "Moderation"
 
-[api.create-video]
-enabled = true
+[api.create-video] # this is an internal API (i.e. It runs on the NextJS app)
+enabled = false
 name = "Create Video"
 one_liner = "Create a video from a prompt and context."
 tag = "Generative"

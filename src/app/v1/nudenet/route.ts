@@ -1,8 +1,6 @@
 import { isApiEnabled } from "@/actions/is-api-enabled";
 import { type NextRequest, NextResponse } from "next/server";
 
-const port = 2000;
-
 export async function POST(req: NextRequest) {
 	const isEnabled = await isApiEnabled("nudenet");
 
@@ -26,7 +24,11 @@ export async function POST(req: NextRequest) {
 	if (contentType?.includes("application/json")) {
 		const { url } = await req.json();
 		if (!url) {
-			return NextResponse.json({ message: "No URL provided" }, { status: 400 });
+			return NextResponse.json({
+				message: "You haven't provided a URL. The `url` field is required.",
+			}, {
+				status: 400,
+			});
 		}
 
 		// Download the image from the URL
@@ -45,7 +47,10 @@ export async function POST(req: NextRequest) {
 		const requestFormData = await req.formData();
 		const image = requestFormData.get("image") as File;
 		if (!image) {
-			return NextResponse.json({ message: "No image provided" }, {
+			return NextResponse.json({
+				message:
+					"You haven't provided an image. The `image` field is required.",
+			}, {
 				status: 400,
 			});
 		}
@@ -71,7 +76,7 @@ export async function POST(req: NextRequest) {
 
 	const fullBody = Buffer.concat([preamble, imageBuffer, ending]);
 
-	const response = await fetch(`http://localhost:${port}/infer`, {
+	const response = await fetch(process.env.NUDE_NET_URL ?? "http://localhost:8080/infer", {
 		method: "POST",
 		headers: {
 			"Content-Length": fullBody.length.toString(),

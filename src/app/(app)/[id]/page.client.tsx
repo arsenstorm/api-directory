@@ -152,33 +152,35 @@ export function Inputs({
 								{input.description && (
 									<Description>{input.description}</Description>
 								)}
-								<div className="p-2 rounded-lg border bg-white my-2">
-									{/* not having overflow-hidden above is quite nice with the blur effect */}
-									{input.type === "image" && inputForm[input.id]?.fileUrl ? (
-										<div className="group relative w-full h-full">
-											<Image
-												src={inputForm[input.id].fileUrl}
-												alt={input.name}
-												width={100}
-												height={100}
-												className={clsx(
-													"object-contain w-full h-96 rounded-md",
-													/* it's even nicer when this is h-full */
-													isBlurred ? "blur-lg" : "",
-												)}
-											/>
-											<div className="absolute inset-0 hidden group-hover:flex items-center justify-center">
-												<Button onClick={toggleBlur} color="white">
-													{isBlurred ? "Unblur" : "Blur"}
-												</Button>
+								{input.type === "image" && (
+									<div className="p-2 rounded-lg border bg-white my-2">
+										{/* not having overflow-hidden above is quite nice with the blur effect */}
+										{inputForm[input.id]?.fileUrl ? (
+											<div className="group relative w-full h-full">
+												<Image
+													src={inputForm[input.id].fileUrl}
+													alt={input.name}
+													width={100}
+													height={100}
+													className={clsx(
+														"object-contain w-full h-96 rounded-md",
+														/* it's even nicer when this is h-full */
+														isBlurred ? "blur-lg" : "",
+													)}
+												/>
+												<div className="absolute inset-0 hidden group-hover:flex items-center justify-center">
+													<Button onClick={toggleBlur} color="white">
+														{isBlurred ? "Unblur" : "Blur"}
+													</Button>
+												</div>
 											</div>
-										</div>
-									) : (
-										<div className="flex items-center justify-center min-h-24">
-											<Text>Preview</Text>
-										</div>
-									)}
-								</div>
+										) : (
+											<div className="flex items-center justify-center min-h-24">
+												<Text>Preview</Text>
+											</div>
+										)}
+									</div>
+								)}
 								<Input
 									name={input.id}
 									required={input.required}

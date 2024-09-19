@@ -3,6 +3,20 @@
 Request Directory is an open-source alternative to RapidAPI, allowing you to use
 APIs for a variety of tasks with a single API key!
 
+## Docker
+
+To build the docker image, run the following command:
+
+```bash
+docker build -t request-directory .
+```
+
+To run the docker container, run the following command:
+
+```bash
+docker run -it -p3000:3000 request-directory
+```
+
 ## APIs
 
 Request Directory contains a bunch of different APIs that are all hosted on
