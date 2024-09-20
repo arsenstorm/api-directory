@@ -1,0 +1,24 @@
+version: '3.8'
+services:
+  request-directory:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+    - 3000:3000
+    depends_on:
+    - nudenet
+    environment:
+      AUTH_GITHUB_ID: Ov23liwtnaH0p4PD2zfI
+      AUTH_GITHUB_SECRET: 1295827dfac3009cce43da9ea36d6415972b92ac
+      UNKEY_ROOT_KEY: unkey_3ZgSF1o4iNJKrmXYn7vh6zbJ
+      UNKEY_API_ID: api_gKipnHcs9PSFyePX1c9hjTznUd7
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0
+      SUPABASE_SECRET_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU
+      SUPABASE_JWT_SECRET: super-secret-jwt-token-with-at-least-32-characters-long
+      NUDENET_URL: http://nudenet:8080/infer
+  nudenet:
+    image: ghcr.io/notai-tech/nudenet:latest
+    ports:
+    - 8080:8080

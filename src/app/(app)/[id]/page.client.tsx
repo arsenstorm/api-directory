@@ -1,5 +1,6 @@
 "use client";
 
+// UI
 import { Subheading } from "@/components/ui/heading";
 import { Code, Text } from "@/components/ui/text";
 import {
@@ -12,9 +13,14 @@ import {
 } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+
+// Functions
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import clsx from "clsx";
+
+// Hooks
+import { useEventListener } from "@mantine/hooks";
 
 export interface InputType {
 	id: string;
@@ -79,7 +85,11 @@ export function Playground({
 					: { "Content-Type": "application/json" },
 		});
 
-		setResponse(await response.json());
+		const json = await response.json();
+
+		setResponse(json);
+
+		return json;
 	};
 
 	return (
@@ -92,12 +102,13 @@ export function Playground({
 
 export function Inputs({
 	inputs,
-	handleSubmit = () => {},
+	handleSubmit = async () => {},
 }: Readonly<{
 	inputs: InputType[];
-	handleSubmit?: (data: any) => void;
+	handleSubmit?: (data: any) => Promise<any>;
 }>) {
 	const [isBlurred, setIsBlurred] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
 	const [inputForm, setInputForm] = useState<any>({});
 
 	const handleInputChange = useCallback((id: string, value: any) => {
@@ -107,6 +118,8 @@ export function Inputs({
 	const toggleBlur = useCallback(() => {
 		setIsBlurred((prev) => !prev);
 	}, []);
+
+	const imageRef = useEventListener("click", toggleBlur);
 
 	useEffect(() => {
 		const blurInputs = inputs.filter((input: InputType) => input.blur);
@@ -124,9 +137,11 @@ export function Inputs({
 	}, [inputForm]);
 
 	const onSubmit = useCallback(
-		(event: React.FormEvent<HTMLFormElement>) => {
+		async (event: React.FormEvent<HTMLFormElement>) => {
 			event.preventDefault();
-			handleSubmit(inputForm);
+			setIsLoading(true);
+			await handleSubmit(inputForm);
+			setIsLoading(false);
 		},
 		[handleSubmit, inputForm],
 	);
@@ -155,30 +170,27 @@ export function Inputs({
 								{input.type === "image" && (
 									<div className="p-2 rounded-lg border bg-white my-2">
 										{/* not having overflow-hidden above is quite nice with the blur effect */}
-										{inputForm[input.id]?.fileUrl ? (
-											<div className="group relative w-full h-full">
-												<Image
-													src={inputForm[input.id].fileUrl}
-													alt={input.name}
-													width={100}
-													height={100}
-													className={clsx(
-														"object-contain w-full h-96 rounded-md",
-														/* it's even nicer when this is h-full */
-														isBlurred ? "blur-lg" : "",
-													)}
-												/>
-												<div className="absolute inset-0 hidden group-hover:flex items-center justify-center">
-													<Button onClick={toggleBlur} color="white">
-														{isBlurred ? "Unblur" : "Blur"}
-													</Button>
-												</div>
-											</div>
-										) : (
-											<div className="flex items-center justify-center min-h-24">
-												<Text>Preview</Text>
-											</div>
-										)}
+										<Image
+											src={inputForm[input.id]?.fileUrl ?? ""}
+											alt={input.name}
+											width={100}
+											height={100}
+											className={clsx(
+												"object-contain w-full h-96 rounded-md",
+												/* it's even nicer when this is h-full */
+												inputForm[input.id]?.fileUrl ? "" : "hidden",
+												isBlurred ? "blur-lg" : "",
+											)}
+											ref={imageRef}
+										/>
+										<div
+											className={clsx(
+												"flex items-center justify-center min-h-24",
+												inputForm[input.id]?.fileUrl ? "hidden" : "",
+											)}
+										>
+											<Text>Preview</Text>
+										</div>
 									</div>
 								)}
 								<Input
@@ -210,13 +222,8 @@ export function Inputs({
 						);
 					})}
 					<Field>
-						{/*
-						NOTE: I’ve deliberately made the button always active, even if
-						inputs are invalid or empty. This is to reflect how the API
-						will behave in production.
-						*/}
-						<Button type="submit" color="dark">
-							Make API Request
+						<Button type="submit" color="dark" disabled={isLoading}>
+							{isLoading ? "Pending..." : "Make API Request"}
 						</Button>
 					</Field>
 				</FieldGroup>

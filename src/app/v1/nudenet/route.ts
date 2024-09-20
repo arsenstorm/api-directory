@@ -1,3 +1,6 @@
+// Configure Next.js
+export const runtime = 'nodejs';
+
 // Functions
 import { isApiEnabled } from "@/actions/is-api-enabled";
 import { checkEnv } from "@/utils/check-env";
@@ -96,7 +99,7 @@ export async function POST(req: NextRequest) {
 	const fullBody = Buffer.concat([preamble, imageBuffer, ending]);
 
 	const response = await fetch(
-		process.env.NUDE_NET_URL ?? "http://localhost:8080/infer",
+		process.env.NUDENET_URL ?? "http://localhost:8080/infer",
 		{
 			method: "POST",
 			headers: {

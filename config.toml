@@ -1,10 +1,10 @@
 [database]
-supabase = "managed" # or "local"
+supabase = "managed" # or "local" - for now, only use managed.
 
 [apis]
 enabled = true
 
-[api.nudenet] # docker run -it -p2000:8080 ghcr.io/notai-tech/nudenet:latest
+[api.nudenet] # docker run -it -p8080:8080 ghcr.io/notai-tech/nudenet:latest
 type = "external" # default is "internal" - since this is external, we depend on the docker container to be running
 enabled = true
 name = "NudeNet"

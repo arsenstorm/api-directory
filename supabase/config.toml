@@ -194,9 +194,8 @@ url = ""
 skip_nonce_check = false
 
 [auth.external.github]
-enabled = true
+enabled = false
 client_id = "env(AUTH_GITHUB_ID)"
-# DO NOT commit your OAuth provider secret to git. Use environment variable substitution instead:
 secret = "env(AUTH_GITHUB_SECRET)"
 
 # Use Firebase Auth as a third-party provider alongside Supabase Auth.
