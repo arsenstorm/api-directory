@@ -15,6 +15,7 @@
     "@mantine/hooks": "^7.12.2",
     "@supabase/ssr": "^0.5.1",
     "@supabase/supabase-js": "^2.45.4",
+    "@tailwindcss/typography": "^0.5.15",
     "@types/react-highlight-words": "^0.20.0",
     "@unkey/api": "^0.26.1",
     "clsx": "^2.1.1",
@@ -25,6 +26,7 @@
     "react": "19.0.0-rc-f994737d14-20240522",
     "react-dom": "19.0.0-rc-f994737d14-20240522",
     "react-highlight-words": "^0.20.0",
+    "react-markdown": "^9.0.1",
     "toml": "^3.0.0"
   },
   "devDependencies": {

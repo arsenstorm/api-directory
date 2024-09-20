@@ -13,6 +13,12 @@ import {
 } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogActions,
+	DialogBody,
+} from "@/components/ui/dialog";
+import Markdown from "react-markdown";
 
 // Functions
 import { useCallback, useEffect, useState } from "react";
@@ -170,19 +176,22 @@ export function Inputs({
 								{input.type === "image" && (
 									<div className="p-2 rounded-lg border bg-white my-2">
 										{/* not having overflow-hidden above is quite nice with the blur effect */}
-										<Image
-											src={inputForm[input.id]?.fileUrl ?? ""}
-											alt={input.name}
-											width={100}
-											height={100}
-											className={clsx(
-												"object-contain w-full h-96 rounded-md",
-												/* it's even nicer when this is h-full */
-												inputForm[input.id]?.fileUrl ? "" : "hidden",
-												isBlurred ? "blur-lg" : "",
+										<div ref={imageRef}>
+											{inputForm[input.id]?.fileUrl && (
+												<Image
+													src={inputForm[input.id].fileUrl}
+													alt={input.name}
+													width={100}
+													height={100}
+													className={clsx(
+														"object-contain w-full h-96 rounded-md",
+														/* it's even nicer when this is h-full */
+														inputForm[input.id]?.fileUrl ? "" : "hidden",
+														isBlurred ? "blur-lg" : "",
+													)}
+												/>
 											)}
-											ref={imageRef}
-										/>
+										</div>
 										<div
 											className={clsx(
 												"flex items-center justify-center min-h-24",
@@ -237,6 +246,36 @@ export function Output({ output }: { readonly output: any }) {
 		<div className="flex flex-col gap-2">
 			<Subheading level={3}>Output</Subheading>
 			<pre>{JSON.stringify(output, null, 2)}</pre>
+		</div>
+	);
+}
+
+export function DocsButton({ docs }: { readonly docs: any }) {
+	const [docsOpen, setDocsOpen] = useState(false);
+
+	const closeDocs = useCallback(() => {
+		setDocsOpen(false);
+	}, []);
+
+	const openDocs = useCallback(() => {
+		setDocsOpen(true);
+	}, []);
+
+	return (
+		<div>
+			<Button type="button" onClick={openDocs} outline>
+				Documentation
+			</Button>
+			<Dialog open={docsOpen} onClose={closeDocs} size="5xl">
+				<DialogBody>
+					<Markdown className="prose">{docs}</Markdown>
+				</DialogBody>
+				<DialogActions>
+					<Button color="dark" onClick={closeDocs}>
+						Close Documentation
+					</Button>
+				</DialogActions>
+			</Dialog>
 		</div>
 	);
 }

@@ -1,10 +1,11 @@
-import { getConfig } from "@/actions/get-config";
 import { notFound } from "next/navigation";
+import { getConfig } from "@/actions/get-config";
+import { DocsButton, Playground } from "./page.client";
+import { getDocById } from "@/utils/get-doc-by-id";
 
 // UI
 import { Heading, Subheading } from "@/components/ui/heading";
 import { Code, Text } from "@/components/ui/text";
-import { Playground } from "./page.client";
 import { Divider } from "@/components/ui/divider";
 
 export default async function Page({
@@ -33,10 +34,23 @@ export default async function Page({
 		return notFound();
 	}
 
+	let docs: any;
+
+	try {
+		docs = await getDocById(id);
+	} catch (error) {
+		console.error(error);
+	}
+
 	return (
 		<div>
-			<Heading>{api.name}</Heading>
-			<Text>{api.one_liner}</Text>
+			<div className="flex flex-row justify-between items-center">
+				<div className="flex flex-col">
+					<Heading>{api.name}</Heading>
+					<Text>{api.one_liner}</Text>
+				</div>
+				<DocsButton docs={docs} />
+			</div>
 			<div className="mt-4">
 				<Text>
 					To use this API, make a <Code>POST</Code> request to this endpoint:{" "}
