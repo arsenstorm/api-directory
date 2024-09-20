@@ -37,6 +37,10 @@ COPY --from=builder /app/config.toml ./
 COPY --from=builder /app/next.config.mjs ./
 COPY --from=builder /app/node_modules ./node_modules
 
+# Copy only .md files from /app/src/app/v1 while maintaining folder structure
+COPY --from=builder /app/src/app/v1 /app/src/app/v1
+RUN find /app/src/app/v1 -type f ! -name "*.md" -delete
+
 # Expose port 3000
 EXPOSE 3000
 
