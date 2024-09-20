@@ -1,4 +1,13 @@
+import type { APIConfig } from "@/types/config";
+
 export const createVideoConfig = {
+  env: [
+    "ELEVENLABS_API_KEY",
+    "REPLICATE_API_KEY",
+    "OPENAI_API_KEY",
+    "GROQ_API_KEY",
+    "FAL_API_KEY",
+  ],
   request: {
     method: "POST",
     type: "json",
@@ -19,6 +28,6 @@ export const createVideoConfig = {
       required: false,
     },
   ],
-};
+} as APIConfig;
 
 export default createVideoConfig;

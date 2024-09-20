@@ -1,13 +1,32 @@
+// Functions
 import { isApiEnabled } from "@/actions/is-api-enabled";
+import { checkEnv } from "@/utils/check-env";
+
+// Types
 import { type NextRequest, NextResponse } from "next/server";
+
+// Config
+import config from "./config";
 
 export async function POST(req: NextRequest) {
 	const isEnabled = await isApiEnabled("nudenet");
+	const { check, message } = checkEnv(config?.env ?? []);
 
 	if (!isEnabled) {
 		return NextResponse.json(
 			{
 				message: "This API is not enabled.",
+			},
+			{
+				status: 400,
+			},
+		);
+	}
+
+	if (!check) {
+		return NextResponse.json(
+			{
+				message,
 			},
 			{
 				status: 400,
@@ -76,14 +95,17 @@ export async function POST(req: NextRequest) {
 
 	const fullBody = Buffer.concat([preamble, imageBuffer, ending]);
 
-	const response = await fetch(process.env.NUDE_NET_URL ?? "http://localhost:8080/infer", {
-		method: "POST",
-		headers: {
-			"Content-Length": fullBody.length.toString(),
-			"Content-Type": `multipart/form-data; boundary=${boundary}`,
+	const response = await fetch(
+		process.env.NUDE_NET_URL ?? "http://localhost:8080/infer",
+		{
+			method: "POST",
+			headers: {
+				"Content-Length": fullBody.length.toString(),
+				"Content-Type": `multipart/form-data; boundary=${boundary}`,
+			},
+			body: fullBody,
 		},
-		body: fullBody,
-	});
+	);
 
 	const data = await response.json();
 

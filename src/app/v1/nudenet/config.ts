@@ -1,3 +1,5 @@
+import type { APIConfig } from "@/types/config";
+
 export const nudenetConfig = {
   request: {
     method: "POST",
@@ -13,6 +15,6 @@ export const nudenetConfig = {
       required: true,
     },
   ],
-};
+} as APIConfig;
 
 export default nudenetConfig;
