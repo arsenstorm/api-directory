@@ -134,7 +134,7 @@ export default function Navbar({ config }: Readonly<{ config: any }>) {
 	}, [supabase]);
 
 	return (
-		<Disclosure as="header" className="my-8">
+		<Disclosure as="header" className="my-4">
 			<PlusGrid>
 				<PlusGridRow className="relative flex justify-between">
 					<div className="relative flex">

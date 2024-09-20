@@ -44,7 +44,7 @@ export default async function Page({
 
 	return (
 		<div>
-			<div className="flex flex-row justify-between items-center">
+			<div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
 				<div className="flex flex-col">
 					<Heading>{api.name}</Heading>
 					<Text>{api.one_liner}</Text>
@@ -57,12 +57,12 @@ export default async function Page({
 					<Code>https://request.directory/v1/{id}</Code>.
 				</Text>
 			</div>
-			<Divider className="my-8" />
+			<Divider className="my-4" />
 			<Subheading>Playground</Subheading>
 			<Text>
 				Test the API for yourself. This will use credits from your account.
 			</Text>
-			<Divider className="my-8" soft />
+			<Divider className="my-4" soft />
 			<Playground config={configDetails} id={id} />
 		</div>
 	);

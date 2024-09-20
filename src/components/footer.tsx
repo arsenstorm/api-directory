@@ -58,7 +58,7 @@ function Copyright() {
 
 export default function Footer() {
 	return (
-		<footer className="my-8">
+		<footer className="my-4">
 			<PlusGrid>
 				<PlusGridRow className="flex justify-between">
 					<div>

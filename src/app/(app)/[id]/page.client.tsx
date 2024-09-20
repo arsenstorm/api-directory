@@ -13,11 +13,7 @@ import {
 } from "@/components/ui/fieldset";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-	Dialog,
-	DialogActions,
-	DialogBody,
-} from "@/components/ui/dialog";
+import { Dialog, DialogActions, DialogBody } from "@/components/ui/dialog";
 import Markdown from "react-markdown";
 
 // Functions
@@ -231,7 +227,12 @@ export function Inputs({
 						);
 					})}
 					<Field>
-						<Button type="submit" color="dark" disabled={isLoading}>
+						<Button
+							type="submit"
+							color="dark"
+							disabled={isLoading}
+							className="w-full md:w-auto"
+						>
 							{isLoading ? "Pending..." : "Make API Request"}
 						</Button>
 					</Field>
@@ -263,8 +264,13 @@ export function DocsButton({ docs }: { readonly docs: any }) {
 
 	return (
 		<div>
-			<Button type="button" onClick={openDocs} outline>
-				Documentation
+			<Button
+				type="button"
+				onClick={openDocs}
+				outline
+				className="w-full md:w-auto"
+			>
+				View Documentation
 			</Button>
 			<Dialog open={docsOpen} onClose={closeDocs} size="5xl">
 				<DialogBody>
