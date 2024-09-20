@@ -250,7 +250,14 @@ export function Output({ output }: { readonly output: any }) {
 	return (
 		<div className="flex flex-col gap-2">
 			<Subheading level={3}>Output</Subheading>
-			<pre>{JSON.stringify(output, null, 2)}</pre>
+			<Text>The response from the API.</Text>
+			<div className="group bg-white rounded-3xl">
+				<div className="relative">
+					<pre className="overflow-x-auto p-4 text-xs">
+						{JSON.stringify(output, null, 2)}
+					</pre>
+				</div>
+			</div>
 		</div>
 	);
 }
