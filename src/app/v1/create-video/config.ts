@@ -1,6 +1,11 @@
 import type { APIConfig } from "@/types/config";
 
 export const createVideoConfig = {
+  details: {
+    name: "Create Video",
+    oneLiner: "Create a video from a prompt and context.",
+    tag: "Generative",
+  },
   env: [
     "ELEVENLABS_API_KEY",
     "REPLICATE_API_KEY",

@@ -1,6 +1,11 @@
 import type { APIConfig } from "@/types/config";
 
 export const nudenetConfig = {
+  details: {
+    name: "NudeNet",
+    oneLiner: "Detects nudity in images.",
+    tag: "Moderation",
+  },
   request: {
     method: "POST",
     type: "form-data",

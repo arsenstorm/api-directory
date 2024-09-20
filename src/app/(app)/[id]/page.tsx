@@ -47,7 +47,7 @@ export default async function Page({
 			<div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
 				<div className="flex flex-col">
 					<Heading>{api.name}</Heading>
-					<Text>{api.one_liner}</Text>
+					<Text>{api.oneLiner}</Text>
 				</div>
 				<DocsButton docs={docs} />
 			</div>

@@ -67,7 +67,7 @@ function useAutocomplete({
 	function filterApiEntries(query: string) {
 		return ([key, api]: [string, any]) => {
 			const searchString =
-				`${key} ${api.name} ${api.one_liner} ${api.tag}`.toLowerCase();
+				`${key} ${api.name} ${api.oneLiner} ${api.tag}`.toLowerCase();
 			return searchString.includes(query.toLowerCase());
 		};
 	}
@@ -76,7 +76,7 @@ function useAutocomplete({
 		return {
 			url: `/${key}`,
 			title: api.name,
-			description: api.one_liner,
+			description: api.oneLiner,
 			tag: api.tag,
 		};
 	}
@@ -210,13 +210,13 @@ function SearchResult({
 	const matchingApi = Object.entries(config.api).find(
 		([key, api]: [string, any]) => {
 			const searchString =
-				`${key} ${api.name} ${api.one_liner} ${api.tag}`.toLowerCase();
+				`${key} ${api.name} ${api.oneLiner} ${api.tag}`.toLowerCase();
 			return searchString.includes(result.title.toLowerCase());
 		},
 	) as any;
 
-	// If a match is found, extract the one_liner for the hierarchy
-	const hierarchy = matchingApi ? [matchingApi[1].one_liner] : [];
+	// If a match is found, extract the oneLiner for the hierarchy
+	const hierarchy = matchingApi ? [matchingApi[1].oneLiner] : [];
 
 	return (
 		<li

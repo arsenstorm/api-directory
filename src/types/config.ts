@@ -1,4 +1,9 @@
 export interface APIConfig {
+  details?: {
+    name: string;
+    oneLiner?: string;
+    tag?: string;
+  };
   env?: string[];
   request: {
     method: string;

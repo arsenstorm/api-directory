@@ -21,7 +21,7 @@ export default async function Home() {
 						id={id}
 						key={id}
 						name={api.name}
-						description={api.one_liner}
+						description={api.oneLiner}
 						tag={{ name: api.tag, color: getTagColor(api.tag) }}
 					/>
 				))}
