@@ -5,6 +5,13 @@ const config: Config = {
 	content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
 	theme: {
 		extend: {
+			typography: {
+				DEFAULT: {
+					css: {
+						maxWidth: "100%",
+					},
+				},
+			},
 			fontFamily: {
 				sans: "Switzer, system-ui, sans-serif",
 			},

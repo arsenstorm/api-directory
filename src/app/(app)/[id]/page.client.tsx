@@ -251,11 +251,11 @@ export function Output({ output }: { readonly output: any }) {
 		<div className="flex flex-col gap-2">
 			<Subheading level={3}>Output</Subheading>
 			<Text>The response from the API.</Text>
-			<div className="group bg-white rounded-3xl">
+			<div className="group bg-white rounded-2xl">
 				<div className="relative">
-					<pre className="overflow-x-auto p-4 text-xs">
-						{JSON.stringify(output, null, 2)}
-					</pre>
+					<Markdown className="prose overflow-x-auto p-4 text-xs w-full">
+						{`\`\`\`json\n${JSON.stringify(output, null, 2)}\n\`\`\``}
+					</Markdown>
 				</div>
 			</div>
 		</div>
