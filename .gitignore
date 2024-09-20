@@ -38,3 +38,6 @@ next-env.d.ts
 
 # ssh
 .ssh
+
+# docker
+docker-compose.yml
