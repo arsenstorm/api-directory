@@ -11,7 +11,9 @@ To get started with self-hosting Request Directory, run this command:
 # TODO!
 ```
 
-> [!NOTE] I’ve not completed this yet—I’m looking to create a simple command
+> [!NOTE]
+> 
+> I’ve not completed this yet—I’m looking to create a simple command
 > that will take an input of the APIs you want to use and then automatically set
 > up the environment for you.
 
@@ -87,7 +89,9 @@ No. The official instance of Request Directory won’t get any AI models.
 
 It will, however, host APIs that use AI models (like those from OpenAI).
 
-> [!TIP] If you want to use Request Directory to host AI models, clone this
+> [!TIP]
+> 
+> If you want to use Request Directory to host AI models, clone this
 > repository and add necessary configurations to the
 
 ### Why Supabase?
