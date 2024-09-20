@@ -23,22 +23,6 @@ docker_compose['services']['request-directory'] = {
     'depends_on': []
 }
 
-# Collect GitHub OAuth credentials
-auth_github_id = input(
-    "Enter the GitHub OAuth Application Client ID (AUTH_GITHUB_ID): ")
-auth_github_secret = input(
-    "Enter the GitHub OAuth Application Client Secret (AUTH_GITHUB_SECRET): ")
-
-# Collect Unkey credentials
-unkey_root_key = input("Enter the Unkey Root Key (UNKEY_ROOT_KEY): ")
-unkey_api_id = input("Enter the Unkey API ID (UNKEY_API_ID): ")
-
-# Initialize Supabase variables
-supabase_url = ''
-supabase_publishable_key = ''
-supabase_secret_key = ''
-supabase_jwt_secret = ''
-
 # Get database settings
 database = config.get('database', {})
 supabase_setting = database.get('supabase', 'managed')
@@ -47,47 +31,20 @@ supabase_setting = database.get('supabase', 'managed')
 local_supabase = (supabase_setting == 'local')
 
 if local_supabase:
-    # If Supabase is local, ask for necessary credentials
-    site_url = input("Enter the site URL: ")
-    supabase_password = input(
-        "Enter a password to secure your Supabase instance (or leave blank to auto-generate): ")
-    if not supabase_password:
-        import random
-        import string
-        supabase_password = ''.join(random.choices(
-            string.ascii_letters + string.digits, k=16))
-        print(f"Generated Supabase password: {supabase_password}")
-
-    print("Visit https://supabase.com/docs/guides/self-hosting/docker#generate-api-keys to generate a JWT secret, anon key, and service role key.")
-    supabase_jwt_secret = input(
-        "Enter a JWT secret to secure your Supabase instance: ")
-    supabase_anon_key = input(
-        "Enter the Supabase Publishable Key (Anon Key): ")
-    supabase_service_role_key = input(
-        "Enter the Supabase Secret (Service Role) Key: ")
-
-    # Set Supabase URL for local instance
-    supabase_url = 'http://supabase:8000'  # Adjust the port if necessary
-    supabase_publishable_key = supabase_anon_key
-    supabase_secret_key = supabase_service_role_key
-
     # Define the Supabase service
     docker_compose['services']['supabase'] = {
         'image': 'supabase/postgres:latest',
         'ports': ['5432:5432', '8000:8000'],  # Expose necessary ports
         'environment': {
-            'POSTGRES_PASSWORD': supabase_password,
-            'JWT_SECRET': supabase_jwt_secret,
-            'SITE_URL': site_url,
-            'SUPABASE_JWT_SECRET': supabase_jwt_secret,
-            'SUPABASE_ANON_KEY': supabase_anon_key,
-            'SUPABASE_SERVICE_ROLE_KEY': supabase_service_role_key,
-            # The keys below are added due to changes in Supabase
-            'SUPABASE_PUBLISHABLE_KEY': supabase_anon_key,
-            'SUPABASE_SECRET_KEY': supabase_service_role_key,
+            'POSTGRES_PASSWORD': '${SUPABASE_PASSWORD}',
+            'JWT_SECRET': '${SUPABASE_JWT_SECRET}',
+            'SITE_URL': '${NEXT_PUBLIC_SITE_URL}',
+            'SUPABASE_JWT_SECRET': '${SUPABASE_JWT_SECRET}',
+            'SUPABASE_ANON_KEY': '${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}',
+            'SUPABASE_SERVICE_ROLE_KEY': '${SUPABASE_SECRET_KEY}',
             # Add the GitHub OAuth credentials to the environment
-            'AUTH_GITHUB_ID': auth_github_id,
-            'AUTH_GITHUB_SECRET': auth_github_secret,
+            'AUTH_GITHUB_ID': '${AUTH_GITHUB_ID}',
+            'AUTH_GITHUB_SECRET': '${AUTH_GITHUB_SECRET}',
         },
         'volumes': [
             'supabase_data:/var/lib/postgresql/data',
@@ -119,14 +76,6 @@ if local_supabase:
     # Write the updated config.toml
     with open(supabase_config_file, 'w') as f:
         toml.dump(supabase_config, f)
-else:
-    # If Supabase is managed, ask for credentials
-    supabase_url = input("Enter the Supabase URL (NEXT_PUBLIC_SUPABASE_URL): ")
-    supabase_publishable_key = input(
-        "Enter the Supabase Publishable Key (Anon Key): ")
-    supabase_secret_key = input(
-        "Enter the Supabase Secret Key (Service Role Key): ")
-    supabase_jwt_secret = input("Enter the Supabase JWT Secret: ")
 
 # Get the APIs configurations
 api_configs = config.get('api', {})
@@ -145,6 +94,22 @@ external_api_environment_variables = {
     'nudenet': {
         'NUDENET_URL': 'http://nudenet:8080/infer'
     }
+}
+
+docker_compose['services']['request-directory']['environment'] = {
+    # GitHub OAuth
+    'AUTH_GITHUB_ID': '${AUTH_GITHUB_ID}',
+    'AUTH_GITHUB_SECRET': '${AUTH_GITHUB_SECRET}',
+
+    # Unkey
+    'UNKEY_ROOT_KEY': '${UNKEY_ROOT_KEY}',
+    'UNKEY_API_ID': '${UNKEY_API_ID}',
+
+    # Supabase
+    'NEXT_PUBLIC_SUPABASE_URL': '${NEXT_PUBLIC_SUPABASE_URL}',
+    'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY': '${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}',
+    'SUPABASE_SECRET_KEY': '${SUPABASE_SECRET_KEY}',
+    'SUPABASE_JWT_SECRET': '${SUPABASE_JWT_SECRET}',
 }
 
 # Process each API
@@ -172,23 +137,6 @@ for api_name, api_value in api_configs.items():
         else:
             print(
                 f"No image information for external API '{api_name}'. Skipping.")
-
-# Add environment variables to the app service
-docker_compose['services']['request-directory']['environment'] = {
-    # GitHub OAuth
-    'AUTH_GITHUB_ID': auth_github_id,
-    'AUTH_GITHUB_SECRET': auth_github_secret,
-
-    # Unkey
-    'UNKEY_ROOT_KEY': unkey_root_key,
-    'UNKEY_API_ID': unkey_api_id,
-
-    # Supabase
-    'NEXT_PUBLIC_SUPABASE_URL': supabase_url,
-    'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY': supabase_publishable_key,
-    'SUPABASE_SECRET_KEY': supabase_secret_key,
-    'SUPABASE_JWT_SECRET': supabase_jwt_secret,
-}
 
 # Write the docker-compose.yml file
 with open('docker-compose.yml', 'w') as f:
