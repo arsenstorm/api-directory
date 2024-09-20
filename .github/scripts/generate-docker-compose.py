@@ -86,7 +86,7 @@ external_api_images = {
         'image': 'ghcr.io/notai-tech/nudenet:latest',
         'ports': ['8080:8080'],
         'cap_add': ['SYS_RESOURCE'], # this flag didn't work to fix the bug
-        'privileged': True  # WARNING: This is dangerous
+        #'privileged': True  # WARNING: This is dangerous
     },
     # Add external APIs here
 }
@@ -127,6 +127,8 @@ for api_name, api_value in api_configs.items():
             docker_compose['services'][service_name] = {
                 'image': external_api['image'],
                 'ports': external_api['ports'],
+                'cap_add': external_api['cap_add'],
+                'privileged': external_api['privileged']
             }
             docker_compose['services']['request-directory']['depends_on'].append(
                 service_name)

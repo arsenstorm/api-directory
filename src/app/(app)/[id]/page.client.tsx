@@ -23,6 +23,7 @@ import clsx from "clsx";
 
 // Hooks
 import { useEventListener } from "@mantine/hooks";
+import { toast } from "sonner";
 
 export interface InputType {
 	id: string;
@@ -78,20 +79,23 @@ export function Playground({
 			formData.append("data", JSON.stringify(data));
 		}
 
-		const response = await fetch(`/v1/${id}`, {
-			method: config.request.method,
-			body: contentType === "form-data" ? formData : JSON.stringify(data),
-			headers:
-				contentType === "form-data"
-					? undefined
-					: { "Content-Type": "application/json" },
-		});
+		try {
+			const response = await fetch(`/v1/${id}`, {
+				method: config.request.method,
+				body: contentType === "form-data" ? formData : JSON.stringify(data),
+				headers:
+					contentType === "form-data"
+						? undefined
+						: { "Content-Type": "application/json" },
+			});
 
-		const json = await response.json();
-
-		setResponse(json);
-
-		return json;
+			const json = await response.json();
+			setResponse(json);
+			return json;
+		} catch (error) {
+			console.error(error);
+			toast.error("Something’s gone wrong. Please try again or contact us.");
+		}
 	};
 
 	return (

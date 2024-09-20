@@ -7,6 +7,8 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { getConfig } from "@/actions/get-config";
 
+import { Toaster } from "sonner";
+
 export const metadata: Metadata = {
 	title: "Request Directory",
 	description:
@@ -34,6 +36,7 @@ export default async function RootLayout({
 				<Navbar config={config} />
 				<div className="flex-1">{children}</div>
 				<Footer />
+				<Toaster richColors />
 			</body>
 		</html>
 	);
