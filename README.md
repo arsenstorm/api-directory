@@ -12,10 +12,45 @@ To get started with self-hosting Request Directory, run this command:
 ```
 
 > [!NOTE]
-> 
-> I’ve not completed this yet—I’m looking to create a simple command
-> that will take an input of the APIs you want to use and then automatically set
-> up the environment for you.
+>
+> I’ve not completed this yet—I’m looking to create a simple command that will
+> take an input of the APIs you want to use and then automatically set up the
+> environment for you.
+
+## Manual Setup
+
+Eventually, I’ll get rid of the need for Python, but for now, here’s how to set
+up the project:
+
+```bash
+# clone the repo
+git clone https://github.com/arsenstorm/api-directory.git
+cd api-directory
+
+# install python
+sudo apt install python3
+sudo apt install python3-pip
+sudo apt install python3-venv
+
+# activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# for windows, use the following command instead
+# python3 -m venv venv
+# .\venv\Scripts\activate
+
+# install dependencies
+pip install -r .github/scripts/requirements.txt
+
+# run the setup script
+python3 .github/scripts/generate-docker-compose.py
+
+# follow the prompts
+
+# run the docker compose file
+docker-compose up --build -d
+```
 
 ## Development
 
@@ -90,9 +125,9 @@ No. The official instance of Request Directory won’t get any AI models.
 It will, however, host APIs that use AI models (like those from OpenAI).
 
 > [!TIP]
-> 
-> If you want to use Request Directory to host AI models, clone this
-> repository and add necessary configurations to the
+>
+> If you want to use Request Directory to host AI models, clone this repository
+> and add necessary configurations to the
 
 ### Why Supabase?
 

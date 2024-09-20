@@ -18,6 +18,7 @@ docker_compose['services']['request-directory'] = {
         'context': '.',
         'dockerfile': 'Dockerfile'
     },
+    'environment': {},
     'ports': ['3000:3000'],
     'depends_on': []
 }
