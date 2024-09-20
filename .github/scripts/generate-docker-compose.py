@@ -85,8 +85,7 @@ external_api_images = {
     'nudenet': {
         'image': 'ghcr.io/notai-tech/nudenet:latest',
         'ports': ['8080:8080'],
-        'cap_add': ['SYS_RESOURCE'],
-        'privileged': True  # WARNING: This is dangerous
+        'cap_add': ['SYS_RESOURCE']
     },
     # Add external APIs here
 }
