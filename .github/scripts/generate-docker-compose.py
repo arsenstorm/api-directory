@@ -84,7 +84,13 @@ api_configs = config.get('api', {})
 external_api_images = {
     'nudenet': {
         'image': 'ghcr.io/notai-tech/nudenet:latest',
-        'ports': ['8080:8080']
+        'ports': ['8080:8080'],
+        'ulimits': {
+            'nofile': {
+                'soft': 1024,
+                'hard': 2048
+            }
+        }
     },
     # Add external APIs here
 }
