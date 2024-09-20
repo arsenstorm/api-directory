@@ -80,6 +80,8 @@ export function Playground({
 		}
 
 		try {
+			const startTime = performance.now();
+
 			const response = await fetch(`/v1/${id}`, {
 				method: config.request.method,
 				body: contentType === "form-data" ? formData : JSON.stringify(data),
@@ -91,7 +93,10 @@ export function Playground({
 
 			const json = await response.json();
 			setResponse(json);
-			return json;
+			return {
+				data: json,
+				time: ((performance.now() - startTime) / 1000).toFixed(2),
+			};
 		} catch (error) {
 			console.error(error);
 			toast.error("Something’s gone wrong. Please try again or contact us.");
@@ -116,6 +121,7 @@ export function Inputs({
 	const [isBlurred, setIsBlurred] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [inputForm, setInputForm] = useState<any>({});
+	const [responseTime, setResponseTime] = useState<string | null>(null);
 
 	const handleInputChange = useCallback((id: string, value: any) => {
 		setInputForm((prev: any) => ({ ...prev, [id]: value }));
@@ -146,7 +152,8 @@ export function Inputs({
 		async (event: React.FormEvent<HTMLFormElement>) => {
 			event.preventDefault();
 			setIsLoading(true);
-			await handleSubmit(inputForm);
+			const response = await handleSubmit(inputForm);
+			setResponseTime(response?.time ?? null);
 			setIsLoading(false);
 		},
 		[handleSubmit, inputForm],
@@ -231,14 +238,21 @@ export function Inputs({
 						);
 					})}
 					<Field>
-						<Button
-							type="submit"
-							color="dark"
-							disabled={isLoading}
-							className="w-full md:w-auto"
-						>
-							{isLoading ? "Pending..." : "Make API Request"}
-						</Button>
+						<div className="flex flex-col md:flex-row gap-4 md:items-center">
+							<Button
+								type="submit"
+								color="dark"
+								disabled={isLoading}
+								className="w-full md:w-auto"
+							>
+								{isLoading ? "Pending..." : "Make API Request"}
+							</Button>
+							{responseTime && (
+								<Text>
+									Time Taken: {responseTime}s
+								</Text>
+							)}
+						</div>
 					</Field>
 				</FieldGroup>
 			</Fieldset>
