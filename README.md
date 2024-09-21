@@ -138,3 +138,21 @@ I chose Supabase for a couple reasons:
    and Next Auth.
 3. I just so happened to start this project while Supabase was running their
    Twelfth Hackathon and I wanted to win😂
+
+## Notes
+
+### Environment Variables
+
+If you’ve been developing locally and using docker, you may run into an issue
+where the environment variables are not being set accurately inside of Next.
+
+If this is the case, you’ve probably forgotten to shutdown the docker-compose
+stack.
+
+To fix it, run the following command:
+
+```bash
+docker-compose down
+```
+
+And then open a new terminal window before running `bun dev` again.

@@ -194,9 +194,9 @@ url = ""
 skip_nonce_check = false
 
 [auth.external.github]
-enabled = false
-client_id = "env(AUTH_GITHUB_ID)"
-secret = "env(AUTH_GITHUB_SECRET)"
+enabled = true
+client_id = "env(GITHUB_CLIENT_ID)"
+secret = "env(GITHUB_CLIENT_SECRET)"
 
 # Use Firebase Auth as a third-party provider alongside Supabase Auth.
 [auth.third_party.firebase]

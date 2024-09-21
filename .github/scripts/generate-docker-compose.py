@@ -43,9 +43,10 @@ if local_supabase:
             'SUPABASE_ANON_KEY': '${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}',
             'SUPABASE_SERVICE_ROLE_KEY': '${SUPABASE_SECRET_KEY}',
             # Add the GitHub OAuth credentials to the environment
-            'AUTH_GITHUB_ID': '${AUTH_GITHUB_ID}',
-            'AUTH_GITHUB_SECRET': '${AUTH_GITHUB_SECRET}',
+            'GITHUB_CLIENT_ID': '${GITHUB_CLIENT_ID}',
+            'GITHUB_CLIENT_SECRET': '${GITHUB_CLIENT_SECRET}',
         },
+
         'volumes': [
             'supabase_data:/var/lib/postgresql/data',
             './supabase/config.toml:/supabase/config.toml'  # Mount the config.toml file
@@ -70,10 +71,11 @@ if local_supabase:
     supabase_config.setdefault('auth', {}).setdefault(
         'external', {}).setdefault('github', {})
     supabase_config['auth']['external']['github']['enabled'] = True
-    supabase_config['auth']['external']['github']['client_id'] = "env(AUTH_GITHUB_ID)"
-    supabase_config['auth']['external']['github']['secret'] = "env(AUTH_GITHUB_SECRET)"
+    supabase_config['auth']['external']['github']['client_id'] = "env(GITHUB_CLIENT_ID)"
+    supabase_config['auth']['external']['github']['secret'] = "env(GITHUB_CLIENT_SECRET)"
 
     # Write the updated config.toml
+
     with open(supabase_config_file, 'w') as f:
         toml.dump(supabase_config, f)
 
@@ -99,8 +101,8 @@ external_api_environment_variables = {
 
 docker_compose['services']['request-directory']['environment'] = {
     # GitHub OAuth
-    'AUTH_GITHUB_ID': '${AUTH_GITHUB_ID}',
-    'AUTH_GITHUB_SECRET': '${AUTH_GITHUB_SECRET}',
+    'GITHUB_CLIENT_ID': '${GITHUB_CLIENT_ID}',
+    'GITHUB_CLIENT_SECRET': '${GITHUB_CLIENT_SECRET}',
 
     # Unkey
     'UNKEY_ROOT_KEY': '${UNKEY_ROOT_KEY}',
