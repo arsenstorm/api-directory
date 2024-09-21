@@ -1,4 +1,4 @@
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -76,5 +76,8 @@ async function loadConfigs() {
 	};
 
 	await readDir(configsDir);
+
+	console.warn("loadConfigs: ", configs);
+
 	return configs;
 }
