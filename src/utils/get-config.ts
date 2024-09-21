@@ -76,8 +76,11 @@ async function loadConfigs() {
 				);
 				configs[apiName] = {
 					...config?.details,
-					pricing: config?.pricing,
-				} ?? {};
+					pricing: config?.pricing ?? {
+						estimated: null,
+						acutal: null,
+					},
+				};
 			}
 		}
 	};
