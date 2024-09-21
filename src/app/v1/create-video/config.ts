@@ -6,6 +6,10 @@ export const createVideoConfig = {
     oneLiner: "Create a video from a prompt and context.",
     tag: "Generative",
   },
+  pricing: {
+    estimated: 0.2, // roughly $0.2 per minute of video
+    price: null, // this is dynamically calculated
+  },
   env: [
     "ELEVENLABS_API_KEY",
     "REPLICATE_API_KEY",

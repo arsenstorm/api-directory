@@ -36,7 +36,7 @@ function DesktopNav({
 			<PlusGridItem className="relative flex">
 				<div className="flex items-center px-4 p-3 text-base font-medium text-gray-950">
 					{session ? (
-						<Link href="/profile" className="flex items-center gap-2">
+						<Link href="/account" className="flex items-center gap-2">
 							<Avatar
 								src={session.user?.user_metadata?.avatar_url}
 								className="size-8"
@@ -85,7 +85,7 @@ function MobileNav({
 					}}
 				>
 					{session ? (
-						<Link href="/profile" className="flex items-center gap-2">
+						<Link href="/account" className="flex items-center gap-2">
 							<Avatar
 								src={session.user?.user_metadata?.avatar_url}
 								className="size-8"
@@ -117,7 +117,7 @@ export default function Navbar({ config }: Readonly<{ config: any }>) {
 		await supabase.auth.signInWithOAuth({
 			provider: "github",
 			options: {
-				redirectTo: `${window.location.origin}/profile`,
+				redirectTo: `${window.location.origin}/account`,
 			},
 		});
 	}, [supabase]);

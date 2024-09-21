@@ -19,7 +19,14 @@ import { getKey } from "@/actions/get-key";
 import { getConfig } from "@/utils/get-config";
 
 // Components
-import { APIKeysListItem, CreateAPIKey } from "./page.client";
+import {
+	APIHistory,
+	APIKeysListItem,
+	CreateAPIKey,
+	Funds,
+} from "./page.client";
+import { createClient } from "@/utils/supabase/server";
+import { redirect } from "next/navigation";
 
 export interface Key {
 	id: string;
@@ -61,7 +68,28 @@ export interface Key {
 	};
 }
 
-export default async function ProfilePage() {
+export default async function AccountPage() {
+	const supabase = createClient();
+
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
+
+	if (!user) {
+		return redirect("/sign-in");
+	}
+
+	const { data: funds } = await supabase.from("users").select("funds").single();
+
+	const { data: history, error } = await supabase
+		.from("requests")
+		.select("id, timestamp, request, response, cost, service, status, user_id")
+		.order("timestamp", { ascending: false });
+
+	if (error) {
+		console.error(error);
+	}
+
 	const permissionsConfig = Object.entries((await getConfig()).api).map(
 		([name, api]) => ({
 			name: api?.name ?? name,
@@ -71,12 +99,14 @@ export default async function ProfilePage() {
 
 	return (
 		<main>
-			<Heading>My Profile</Heading>
-			<Text>
-				View your profile information and manage your account settings.
-			</Text>
+			<Heading>My Account</Heading>
+			<Text>View and manage your account information and settings.</Text>
 			<Divider className="my-4" />
+			<Funds data={funds} />
+			<Divider className="my-8" />
 			<APIKeys permissionsConfig={permissionsConfig} />
+			<Divider className="my-8" />
+			<APIHistory data={history ?? []} />
 		</main>
 	);
 }
@@ -96,7 +126,9 @@ function APIKeys({
 						<TableHeader>ID</TableHeader>
 						<TableHeader>Name</TableHeader>
 						<TableHeader>Hint</TableHeader>
-						<TableHeader>Settings</TableHeader>
+						<TableHeader className="relative w-0">
+							<span className="sr-only">Actions</span>
+						</TableHeader>
 					</TableRow>
 				</TableHead>
 				<TableBody>

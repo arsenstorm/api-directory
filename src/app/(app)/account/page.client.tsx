@@ -1,9 +1,16 @@
 "use client";
 
 // UI
-import { TableCell, TableRow } from "@/components/ui/table";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
 import { Subheading } from "@/components/ui/heading";
-import { Text } from "@/components/ui/text";
+import { Code, Text, TextLink } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -24,14 +31,68 @@ import {
 	CheckboxField,
 	CheckboxGroup,
 } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Divider } from "@/components/ui/divider";
 
 // Types
 import type { Key } from "./page";
 
 // Hooks
-import { useCallback, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Divider } from "@/components/ui/divider";
+import { useCallback, useEffect, useState } from "react";
+
+// Utils
+import { AnimatedNumber } from "@/components/animated-number";
+import { createClient } from "@/utils/supabase/client";
+import Markdown from "react-markdown";
+
+export function Funds({ data }: { readonly data: any }) {
+	const supabase = createClient();
+	const [fundsRemaining, setFundsRemaining] = useState(data?.funds ?? 0);
+
+	useEffect(() => {
+		const channel = supabase
+			.channel("realtime-funds")
+			.on(
+				"postgres_changes",
+				{
+					event: "UPDATE",
+					schema: "public",
+					table: "users",
+				},
+				(payload) => {
+					setFundsRemaining(payload.new.funds);
+				},
+			)
+
+			.subscribe();
+
+		return () => {
+			supabase.removeChannel(channel);
+		};
+	}, [supabase]);
+
+	return (
+		<div>
+			<Subheading>Funds</Subheading>
+			<Text>View and manage your funds.</Text>
+			<Divider className="my-4" soft />
+			<div>
+				<p className="text-7xl font-bold">
+					$
+					<AnimatedNumber
+						start={0}
+						end={fundsRemaining.toFixed(2)}
+						decimals={2}
+					/>
+				</p>
+				<Text>
+					You have exactly ${fundsRemaining} remaining.{" "}
+					<TextLink href="/pricing">Add more funds</TextLink>.
+				</Text>
+			</div>
+		</div>
+	);
+}
 
 interface KeyCreatedData {
 	id: string;
@@ -43,14 +104,18 @@ export function APIKeysListItem({ data }: { readonly data: Key }) {
 		<TableRow>
 			<TableCell>{data.id}</TableCell>
 			<TableCell className="font-medium">{data.name}</TableCell>
-			<TableCell className="text-zinc-500">{data.start}</TableCell>
+			<TableCell className="text-zinc-500">
+				<Code>{data.start}</Code>
+			</TableCell>
 			<TableCell className="w-fit">
-				<Button
-					href={`/profile/${data.id}`} // TODO: Add the manage key page
-					disabled
-				>
-					Manage Key
-				</Button>
+				<div className="-mx-0 -my-1.5">
+					<Button
+						href={`/profile/${data.id}`} // TODO: Add the manage key page
+						disabled
+					>
+						Manage Key
+					</Button>
+				</div>
 			</TableCell>
 		</TableRow>
 	);
@@ -262,5 +327,194 @@ function AdvancedSettings({
 				<Button onClick={handleClose}>Save Permissions</Button>
 			</DialogActions>
 		</Dialog>
+	);
+}
+
+export interface APIHistoryData {
+	readonly id: string;
+	readonly timestamp: string;
+	readonly service: string;
+	readonly status: string;
+	readonly cost: string;
+	readonly request: any;
+	readonly response: any;
+	readonly user_id: string;
+}
+
+export function APIHistory({
+	data = [],
+}: {
+	readonly data: APIHistoryData[];
+}) {
+	const [viewHistory, setViewHistory] = useState<string | null>(null);
+	const [history, setHistory] = useState<APIHistoryData[]>(data);
+
+	const supabase = createClient();
+
+	useEffect(() => {
+		const channel = supabase
+			.channel("realtime-requests")
+			.on(
+				"postgres_changes",
+				{
+					event: "*",
+					schema: "public",
+					table: "requests",
+				},
+				(payload) => {
+					const mapPayloadToAPIHistoryData = (data: any): APIHistoryData => ({
+						id: data.id,
+						timestamp: data.timestamp,
+						service: data.service,
+						status: data.status,
+						cost: data.cost,
+						request: data.request,
+						response: data.response,
+						user_id: data.user_id,
+					});
+
+					switch (payload.eventType) {
+						case "INSERT":
+							setHistory((prev) => [
+								...prev,
+								mapPayloadToAPIHistoryData(payload.new),
+							]);
+							break;
+						case "UPDATE":
+							setHistory((prev) =>
+								prev.map((item) =>
+									item.id === payload.new.id
+										? mapPayloadToAPIHistoryData(payload.new)
+										: item,
+								),
+							);
+							break;
+						case "DELETE":
+							setHistory((prev) =>
+								prev.filter((item) => item.id !== payload.old.id),
+							);
+							break;
+						default:
+							break;
+					}
+				},
+			)
+
+			.subscribe();
+
+		return () => {
+			supabase.removeChannel(channel);
+		};
+	}, [supabase]);
+
+	return (
+		<div>
+			<Subheading>Realtime API History</Subheading>
+			<Text>
+				View your realtime API history.
+				{/*
+				// TODO: Something like this should be added.
+				Add <Code>?noSave=true</Code> to your
+				requests to prevent saving in history.*/}
+			</Text>
+			<Divider className="my-4" soft />
+			<Table bleed>
+				<TableHead>
+					<TableRow>
+						<TableHeader>Request ID</TableHeader>
+						<TableHeader>Timestamp</TableHeader>
+						<TableHeader>Service</TableHeader>
+						<TableHeader>Status</TableHeader>
+						<TableHeader>Cost</TableHeader>
+						<TableHeader className="relative w-0">
+							<span className="sr-only">View</span>
+						</TableHeader>
+					</TableRow>
+				</TableHead>
+
+				<TableBody>
+					{history.map((item) => {
+						let statusColor = "zinc";
+
+						if (item.status === "failed") {
+							statusColor = "red";
+						}
+
+						if (item.status === "success") {
+							statusColor = "green";
+						}
+
+						return (
+							<TableRow key={item.id}>
+								<TableCell>{item.id}</TableCell>
+								<TableCell>
+									<time dateTime={item.timestamp}>
+										{new Date(item.timestamp).toLocaleString()}
+									</time>
+								</TableCell>
+								<TableCell>
+									<TextLink href={`/${item.service}`}>{item.service}</TextLink>
+								</TableCell>
+								<TableCell>
+									<Badge color={statusColor as "green" | "red" | "zinc"}>
+										{item.status}
+									</Badge>
+								</TableCell>
+								<TableCell className="font-mono">
+									${Number(item.cost).toFixed(10)}
+								</TableCell>
+								<TableCell>
+									<div className="-mx-0 -my-1.5">
+										<Button onClick={() => setViewHistory(item.id)}>
+											View
+										</Button>
+									</div>
+								</TableCell>
+							</TableRow>
+						);
+					})}
+
+					{history.length === 0 && (
+						<TableRow>
+							<TableCell colSpan={6} className="text-center">
+								No history yet
+							</TableCell>
+						</TableRow>
+					)}
+				</TableBody>
+			</Table>
+			<Dialog open={!!viewHistory} onClose={() => setViewHistory(null)}>
+				<DialogTitle>Request Details</DialogTitle>
+				<DialogDescription>
+					Below are the details of the request.
+				</DialogDescription>
+				<DialogBody>
+					<FieldGroup>
+						<Field>
+							<Label>Request</Label>
+							<Markdown className="prose overflow-x-auto text-xs w-full mt-2">
+								{`\`\`\`json\n${JSON.stringify(
+									history.find((item) => item.id === viewHistory)?.request ??
+										{},
+									null,
+									2,
+								)}\n\`\`\``}
+							</Markdown>
+						</Field>
+						<Field>
+							<Label>Response</Label>
+							<Markdown className="prose overflow-x-auto text-xs w-full mt-2">
+								{`\`\`\`json\n${JSON.stringify(
+									history.find((item) => item.id === viewHistory)?.response ??
+										{},
+									null,
+									2,
+								)}\n\`\`\``}
+							</Markdown>
+						</Field>
+					</FieldGroup>
+				</DialogBody>
+			</Dialog>
+		</div>
 	);
 }

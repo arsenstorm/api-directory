@@ -6,6 +6,10 @@ export const nudenetConfig = {
     oneLiner: "Detects nudity in images.",
     tag: "Moderation",
   },
+  pricing: {
+    estimated: 0.0001, // roughly $0.0001 per image moderated
+    price: 0.0001, // we charge $0.0001 per image moderated
+  },
   request: {
     method: "POST",
     type: "form-data",

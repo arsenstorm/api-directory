@@ -4,6 +4,10 @@ export interface APIConfig {
     oneLiner?: string;
     tag?: string;
   };
+  pricing?: {
+    estimated?: number;
+    price?: number | null; // null means the price is dynamically calculated
+  };
   env?: string[];
   request: {
     method: string;
