@@ -46,8 +46,6 @@ pip install -r .github/scripts/requirements.txt
 # run the setup script
 python3 .github/scripts/generate-docker-compose.py
 
-# follow the prompts
-
 # run the docker compose file
 docker-compose up --build -d
 ```
