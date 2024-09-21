@@ -1,34 +1,40 @@
 # Dockerfile
 
 # Stage 1: Build the application
-FROM oven/bun:1.1.9-alpine AS builder
+FROM node:18-alpine AS builder
+
+# Install pnpm globally
+RUN npm install -g pnpm
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and bun.lockb (if available)
-COPY package.json bun.lockb ./
+# Copy package.json and pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
-RUN bun install
+RUN pnpm install
 
 # Copy the rest of your application code
 COPY . .
 
 # Build the Next.js application
-RUN bun run build
+RUN pnpm run build
 
 # Stage 2: Serve the application
-FROM oven/bun:1.1.9-alpine
+FROM node:18-alpine
+
+# Install pnpm globally
+RUN npm install -g pnpm
 
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and bun.lockb
-COPY package.json bun.lockb ./
+# Copy package.json and pnpm-lock.yaml
+COPY package.json pnpm-lock.yaml ./
 
 # Install only production dependencies
-RUN bun install --production
+RUN pnpm install --prod
 
 # Copy the build output and necessary files from the builder stage
 COPY --from=builder /app/.next ./.next
@@ -45,4 +51,4 @@ RUN find /app/src/app/v1 -type f ! -name "*.md" -delete
 EXPOSE 3000
 
 # Start the Next.js application
-CMD ["bun", "run", "start"]
+CMD ["pnpm", "start"]
