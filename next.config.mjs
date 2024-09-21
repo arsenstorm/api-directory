@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-	exclude: ["supabase"],
-};
+const nextConfig = {};
 
 export default nextConfig;
