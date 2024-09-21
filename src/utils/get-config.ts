@@ -77,7 +77,5 @@ async function loadConfigs() {
 
 	await readDir(configsDir);
 
-	console.warn("loadConfigs: ", configs);
-
 	return configs;
 }
