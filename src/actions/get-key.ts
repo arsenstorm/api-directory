@@ -5,7 +5,7 @@ import { createClient } from "@/utils/supabase/server";
 
 export async function getKey(keyId?: string) {
 	const supabase = createClient();
-	
+
 	const { data: { user } } = await supabase.auth.getUser();
 
 	const userId = user?.id ?? undefined;
@@ -23,6 +23,7 @@ export async function getKey(keyId?: string) {
 		const keys = await unkey.apis.listKeys({
 			apiId: process.env.UNKEY_API_ID,
 			ownerId: userId,
+			revalidateKeysCache: true,
 		});
 
 		return keys?.result?.keys;

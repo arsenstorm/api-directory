@@ -45,8 +45,8 @@ if local_supabase:
             # Add the GitHub OAuth credentials to the environment
             'GITHUB_CLIENT_ID': '${GITHUB_CLIENT_ID}',
             'GITHUB_CLIENT_SECRET': '${GITHUB_CLIENT_SECRET}',
+            'STRIPE_WEBHOOK_SIGNING_SECRET': '${STRIPE_WEBHOOK_SIGNING_SECRET}',
         },
-
         'volumes': [
             'supabase_data:/var/lib/postgresql/data',
             './supabase/config.toml:/supabase/config.toml'  # Mount the config.toml file
@@ -113,7 +113,12 @@ docker_compose['services']['request-directory']['environment'] = {
     'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY': '${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}',
     'SUPABASE_SECRET_KEY': '${SUPABASE_SECRET_KEY}',
     'SUPABASE_JWT_SECRET': '${SUPABASE_JWT_SECRET}',
+
+    # Stripe
+    'STRIPE_PUBLISHABLE_KEY': '${STRIPE_PUBLISHABLE_KEY}',
+    'STRIPE_SECRET_KEY': '${STRIPE_SECRET_KEY}'
 }
+
 
 # Process each API
 for api_name, api_value in api_configs.items():

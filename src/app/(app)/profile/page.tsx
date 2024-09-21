@@ -16,6 +16,7 @@ import { Suspense } from "react";
 
 // Actions
 import { getKey } from "@/actions/get-key";
+import { getConfig } from "@/actions/get-config";
 
 // Components
 import { APIKeysListItem, CreateAPIKey } from "./page.client";
@@ -60,7 +61,14 @@ export interface Key {
 	};
 }
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+	const permissionsConfig = Object.entries((await getConfig()).api).map(
+		([name, api]) => ({
+			name: api?.name ?? name,
+			id: name,
+		}),
+	);
+
 	return (
 		<main>
 			<Heading>My Profile</Heading>
@@ -68,15 +76,19 @@ export default function ProfilePage() {
 				View your profile information and manage your account settings.
 			</Text>
 			<Divider className="my-4" />
-			<APIKeys />
+			<APIKeys permissionsConfig={permissionsConfig} />
 		</main>
 	);
 }
 
-function APIKeys() {
+function APIKeys({
+	permissionsConfig,
+}: {
+	readonly permissionsConfig: { readonly name: string; readonly id: string }[];
+}) {
 	return (
 		<div>
-			<CreateAPIKey />
+			<CreateAPIKey permissionsConfig={permissionsConfig} />
 			<Divider soft className="my-4" />
 			<Table>
 				<TableHead>

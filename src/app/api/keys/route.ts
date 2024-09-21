@@ -1,10 +1,12 @@
 import { unkey } from "@/utils/get-unkey";
 import { createClient } from "@/utils/supabase/server";
+import { createClient as createSupaClient } from "@/utils/supabase/supa";
 import { type NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
 	const supabase = createClient();
-	
+	const supa = createSupaClient();
+
 	const { data: { user } } = await supabase.auth.getUser();
 
 	const userId = user?.id ?? undefined;
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
 		);
 	}
 
-	const { name } = await req.json();
+	const { name, permissions = ["everything"] } = await req.json();
 
 	const created = await unkey.keys.create({
 		apiId: process.env.UNKEY_API_ID,
@@ -39,6 +41,18 @@ export async function POST(req: NextRequest) {
 		);
 	}
 
+	const { keyId } = created.result;
+
+	const { error } = await supa.from("keys").insert({
+		id: keyId,
+		user_id: userId,
+		permissions,
+	});
+
+	if (error) {
+		console.error(error);
+	}
+
 	return NextResponse.json(
 		{
 			message: "Key created successfully",
@@ -51,8 +65,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+	const supa = createSupaClient();
 	const supabase = createClient();
-	
+
 	const { data: { user } } = await supabase.auth.getUser();
 
 	const userId = user?.id ?? undefined;
@@ -87,6 +102,12 @@ export async function DELETE(req: NextRequest) {
 			{ message: "We were not able to delete your key." },
 			{ status: 500 },
 		);
+	}
+
+	const { error } = await supa.from("keys").delete().eq("id", keyId);
+
+	if (error) {
+		console.error(error);
 	}
 
 	return NextResponse.json(
