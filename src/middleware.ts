@@ -1,12 +1,46 @@
+// Supabase
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@/utils/supabase/supa";
+
+// Next
 import { type NextRequest, NextResponse } from "next/server";
 
+// Utils
+import * as jose from "jose";
 import { unkey } from "@/utils/get-unkey";
 
+async function signJWT(
+  payload: jose.JWTPayload,
+  secret: string,
+): Promise<string> {
+  const alg = "HS256";
+  const secretKey = new TextEncoder().encode(secret);
+
+  const jwt = await new jose.SignJWT(payload)
+    .setProtectedHeader({ alg })
+    .setIssuedAt()
+    .setIssuer("urn:example:issuer")
+    .setAudience("urn:example:audience")
+    .setExpirationTime("2h")
+    .sign(secretKey);
+
+  return jwt;
+}
+
+function createResponseWithHeaders(headers: Headers) {
+  return NextResponse.next({
+    request: {
+      headers,
+    },
+  });
+}
+
 export async function middleware(request: NextRequest) {
+  const _headers = new Headers(request.headers);
   let response = NextResponse.next({
-    request,
+    request: {
+      headers: _headers,
+    },
   });
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -48,7 +82,7 @@ export async function middleware(request: NextRequest) {
     !user &&
     request.nextUrl.pathname.startsWith("/v1")
   ) {
-    return await validateAPIAccess({ request, response });
+    return await validateAPIAccess({ request, response, headers: _headers });
   }
 
   return response;
@@ -62,9 +96,11 @@ export async function middleware(request: NextRequest) {
 async function validateAPIAccess({
   request,
   response,
+  headers,
 }: {
   request: NextRequest;
   response: NextResponse;
+  headers: Headers;
 }) {
   const pathParts = request.nextUrl.pathname.split("/");
 
@@ -116,12 +152,20 @@ async function validateAPIAccess({
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (keyData.permissions.includes("everything")) {
-    return response;
-  }
+  const token = await signJWT(
+    {
+      sub: ownerId,
+    },
+    process.env.SUPABASE_JWT_SECRET!,
+  );
 
-  if (keyData.permissions.includes(apiId)) {
-    return response;
+  headers.set("Authorization", `Bearer ${token}`);
+
+  if (
+    keyData.permissions.includes("everything") ||
+    keyData.permissions.includes(apiId)
+  ) {
+    return createResponseWithHeaders(headers);
   }
 
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

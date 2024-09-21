@@ -5,26 +5,30 @@ import path from "node:path";
 import toml from "toml";
 
 export interface BaseAPIConfiguration {
-	[key: string]: {
+	readonly [key: string]: {
 		readonly type?: "internal" | "external";
 		readonly enabled: boolean;
-	} | undefined;
+	};
 }
 
 export interface APIConfiguration extends BaseAPIConfiguration {
-	[key: string]: {
+	readonly [key: string]: {
 		readonly name: string;
 		readonly oneLiner?: string;
 		readonly tags?: string[];
 		readonly enabled: boolean;
 		readonly type?: "internal" | "external";
-	} | undefined;
+		readonly pricing?: {
+			readonly estimated?: number;
+			readonly price?: number;
+		};
+	};
 }
 
 export async function getConfig() {
 	const filePath = path.join(process.cwd(), "config.toml");
 	const fileContent = await fs.readFile(filePath, "utf-8");
-	const config = toml.parse(fileContent) as { api: APIConfiguration };
+	const config = toml.parse(fileContent) as { api: APIConfiguration[] };
 
 	// load configs from `src/app/v1/**/config.ts` (default export) and then merge them with the toml config (just the [default].details)
 	const v1Configs = await loadConfigs();
@@ -70,7 +74,10 @@ async function loadConfigs() {
 				const config = await import(`@/app/v1/${apiName}/config`).then(
 					(mod) => mod.default,
 				);
-				configs[apiName] = config?.details ?? {};
+				configs[apiName] = {
+					...config?.details,
+					pricing: config?.pricing,
+				} ?? {};
 			}
 		}
 	};

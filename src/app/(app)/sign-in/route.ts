@@ -5,8 +5,6 @@ export async function GET(request: NextRequest) {
   const supabase = createClient();
 
   const url = new URL(request.nextUrl.origin);
-  const redirectTo = url.searchParams.get("redirectTo") ?? "/account";
-  url.pathname = redirectTo;
 
   const { data: { user } } = await supabase.auth.getUser();
 

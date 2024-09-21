@@ -8,8 +8,55 @@ import { type NextRequest, NextResponse } from "next/server";
 // Config
 import config from "./config";
 
+// Utils
+import { createClient } from "@/utils/supabase/server";
+import { createClient as createSupaClient } from "@/utils/supabase/supa";
+import { getEstimatedCost } from "@/utils/get-estimated-cost";
+
 export async function POST(req: NextRequest) {
+	const authorization = req.headers.get("authorization") ?? undefined;
+
+	if (!authorization) {
+		return NextResponse.json(
+			{
+				error: "Unauthorized",
+			},
+			{
+				status: 401,
+			},
+		);
+	}
+
+	const supabase = createClient(authorization);
+
 	const isEnabled = await isApiEnabled("nudenet");
+	const { estimated, actual = null } = await getEstimatedCost("nudenet");
+
+	// NOTE: Since we're using a custom way of signing a user in with their API key,
+	// we need to make sure that any Supabase RLS policies are applied to the `public` role
+	// and not the `authenticated` role.
+	const { data: userData, error: userError } = await supabase.from("users")
+		.select("id, funds").single();
+
+	if (userError) {
+		console.error(userError);
+		return NextResponse.json({
+			message: "Failed to get user funds.",
+		}, {
+			status: 400,
+		});
+	}
+
+	if (userData.funds - estimated < 0) {
+		return NextResponse.json({
+			message: "You don’t have enough credits.",
+		}, {
+			status: 400,
+		});
+	}
+
+	const updatedUserData = await subtractFunds(userData, actual, estimated);
+
 	const { check, message } = checkEnv(config?.env ?? []);
 
 	if (!isEnabled) {
@@ -109,5 +156,48 @@ export async function POST(req: NextRequest) {
 
 	const data = await response.json();
 
-	return NextResponse.json(data, { status: 200 });
+	// if we were hosting on Vercel, we could use the `@vercel/functions` package
+	// with `waitUntil` to run some cleanup code after the response has been sent.
+	//
+	// However, since we're not and are working to host via Docker, we have to
+	// run waitUntil in the main thread.
+
+	return NextResponse.json(
+		{ ...data, funds: updatedUserData?.[0]?.funds ?? null },
+		{
+			status: 200,
+		},
+	);
+}
+
+async function subtractFunds(
+	userData: { funds: number; id: string },
+	actual: number | null,
+	estimated: number,
+) {
+	const supa = createSupaClient();
+
+	// TODO: Calculating the `actual` cost of the API call must be done soon.
+	const precision = 6;
+
+	const safeActual = actual ? Number.parseFloat(actual.toFixed(precision)) : 0;
+	const safeEstimated = estimated
+		? Number.parseFloat(estimated.toFixed(precision))
+		: 0;
+
+	const newAmount = Number.parseFloat(
+		(userData.funds - (safeActual ?? safeEstimated)).toFixed(precision),
+	);
+
+	// Subtract funds from user
+	const { data: updatedUserData, error: updateFundsError } = await supa
+		.from("users").update({
+			funds: newAmount,
+		}).eq("id", userData.id).select("funds");
+
+	if (updateFundsError) {
+		throw new Error("Failed to update user funds.");
+	}
+
+	return updatedUserData;
 }
