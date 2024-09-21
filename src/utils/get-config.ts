@@ -1,4 +1,4 @@
-"use server";
+export const runtime = 'nodejs';
 
 import fs from "node:fs";
 import path from "node:path";

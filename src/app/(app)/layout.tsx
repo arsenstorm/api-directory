@@ -5,7 +5,7 @@ import clsx from "clsx";
 // Components
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { getConfig } from "@/actions/get-config";
+import { getConfig } from "@/utils/get-config";
 
 import { Toaster } from "sonner";
 

@@ -16,7 +16,7 @@ import { Suspense } from "react";
 
 // Actions
 import { getKey } from "@/actions/get-key";
-import { getConfig } from "@/actions/get-config";
+import { getConfig } from "@/utils/get-config";
 
 // Components
 import { APIKeysListItem, CreateAPIKey } from "./page.client";

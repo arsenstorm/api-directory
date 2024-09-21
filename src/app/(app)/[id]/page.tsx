@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getConfig } from "@/actions/get-config";
+import { getConfig } from "@/utils/get-config";
 import { DocsButton, Playground } from "./page.client";
 import { getDocById } from "@/utils/get-doc-by-id";
 

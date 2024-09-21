@@ -1,5 +1,5 @@
 // Functions
-import { isApiEnabled } from "@/actions/is-api-enabled";
+import { isApiEnabled } from "@/utils/is-api-enabled";
 import { checkEnv } from "@/utils/check-env";
 
 // Types

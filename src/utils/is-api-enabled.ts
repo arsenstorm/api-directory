@@ -1,6 +1,4 @@
-"use server";
-
-import { getConfig } from "./get-config";
+import { getConfig } from "@/utils/get-config";
 
 export async function isApiEnabled(id: string) {
   const config = await getConfig();
