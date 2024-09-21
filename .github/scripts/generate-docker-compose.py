@@ -23,11 +23,113 @@ docker_compose['services']['request-directory'] = {
     'depends_on': []
 }
 
+# Add NGINX service with Certbot
+docker_compose['services']['nginx'] = {
+    'image': 'nginx:latest',
+    'ports': ['80:80', '443:443'],
+    'volumes': [
+        './nginx/nginx.conf:/etc/nginx/nginx.conf',  # Mount NGINX config
+        './nginx/certificates:/etc/nginx/certificates',  # Mount SSL certs
+        './nginx/html:/var/www/html',  # Mount for Let's Encrypt challenge files
+        './certbot-etc:/etc/letsencrypt',  # Let's Encrypt cert storage
+    ],
+    'environment': {
+        # Pass the environment variable
+        'NEXT_PUBLIC_SITE_URL': '${NEXT_PUBLIC_SITE_URL}',
+    },
+    'depends_on': ['request-directory'],
+    'command': '/bin/bash -c "/app/init-letsencrypt.sh && nginx -g \'daemon off;\'"'
+}
+
+# Certbot dependencies service for SSL generation
+docker_compose['services']['certbot'] = {
+    'image': 'certbot/certbot',
+    'volumes': [
+        './nginx/html:/var/www/html',  # Challenge files directory
+        './certbot-etc:/etc/letsencrypt',  # Let's Encrypt cert storage
+    ],
+    'entrypoint': '/bin/bash -c "exit 0"'  # Runs Certbot on NGINX startup
+}
+
+# Create NGINX config file for SSL and redirection
+nginx_config_dir = './nginx'
+os.makedirs(nginx_config_dir, exist_ok=True)
+nginx_config_file = os.path.join(nginx_config_dir, 'nginx.conf')
+
+nginx_config = """
+server {
+    listen 80;
+    server_name $host;
+
+    # Handle Let's Encrypt challenge
+    location /.well-known/acme-challenge/ {
+        root /var/www/html;
+    }
+
+    # Redirect all HTTP requests to HTTPS
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name $host;
+
+    # SSL configuration
+    ssl_certificate /etc/letsencrypt/live/$host/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$host/privkey.pem;
+
+    # Prevent direct IP access
+    if ($host ~* ^(\d+\.\d+\.\d+\.\d+)$) {
+        return 444;
+    }
+
+    # Proxy requests to the NextJS app
+    location / {
+        proxy_pass http://request-directory:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+"""
+
+# Write NGINX config
+with open(nginx_config_file, 'w') as f:
+    f.write(nginx_config)
+
+# Create Let's Encrypt initialization script with environment variable support
+letsencrypt_script = """#!/bin/bash
+
+domain=${NEXT_PUBLIC_SITE_URL}
+
+# Remove 'http://' or 'https://' if present in domain
+domain=${domain#https://}
+domain=${domain#http://}
+
+if [ ! -d "/etc/letsencrypt/live/$domain" ]; then
+    echo "### Generating SSL certificates for $domain ..."
+    certbot certonly --webroot --webroot-path=/var/www/html --agree-tos --email admin@$domain -d $domain --non-interactive
+else
+    echo "### SSL certificates for $domain already exist ..."
+fi
+"""
+
+# Write the script to the NGINX directory
+init_script_file = os.path.join(nginx_config_dir, 'init-letsencrypt.sh')
+with open(init_script_file, 'w') as f:
+    f.write(letsencrypt_script)
+
+# Ensure the script is executable
+os.chmod(init_script_file, 0o755)
+
 # Get database settings
 database = config.get('database', {})
 supabase_setting = database.get('supabase', 'managed')
 
-# Determine if supabase is local
+# Determine if Supabase is local
 local_supabase = (supabase_setting == 'local')
 
 if local_supabase:
@@ -78,80 +180,6 @@ if local_supabase:
 
     with open(supabase_config_file, 'w') as f:
         toml.dump(supabase_config, f)
-
-# Get the APIs configurations
-api_configs = config.get('api', {})
-
-# Define mapping from external API names to images and ports
-external_api_images = {
-    'nudenet': {
-        'image': 'ghcr.io/notai-tech/nudenet:latest',
-        'ports': ['8080:8080'],
-        'cap_add': ['SYS_RESOURCE'],  # NudeNet needs this flag to run.
-    },
-    # Add external APIs here
-}
-
-# These Environment Variables are added to the NextJS app service
-external_api_environment_variables = {
-    'nudenet': {
-        'NUDENET_URL': 'http://nudenet:8080/infer'
-    }
-}
-
-docker_compose['services']['request-directory']['environment'] = {
-    # GitHub OAuth
-    'GITHUB_CLIENT_ID': '${GITHUB_CLIENT_ID}',
-    'GITHUB_CLIENT_SECRET': '${GITHUB_CLIENT_SECRET}',
-
-    # Unkey
-    'UNKEY_ROOT_KEY': '${UNKEY_ROOT_KEY}',
-    'UNKEY_API_ID': '${UNKEY_API_ID}',
-
-    # Supabase
-    'NEXT_PUBLIC_SUPABASE_URL': '${NEXT_PUBLIC_SUPABASE_URL}',
-    'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY': '${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}',
-    'SUPABASE_SECRET_KEY': '${SUPABASE_SECRET_KEY}',
-    'SUPABASE_JWT_SECRET': '${SUPABASE_JWT_SECRET}',
-
-    # Stripe
-    'STRIPE_PUBLISHABLE_KEY': '${STRIPE_PUBLISHABLE_KEY}',
-    'STRIPE_SECRET_KEY': '${STRIPE_SECRET_KEY}'
-}
-
-
-# Process each API
-for api_name, api_value in api_configs.items():
-    api_enabled = api_value.get('enabled', False)
-    api_type = api_value.get('type', 'internal')
-
-    if api_enabled and api_type == 'external':
-        # Get the external API configuration
-        external_api = external_api_images.get(api_name)
-        if external_api:
-            service_name = api_name.replace('_', '-')
-            service_config = {
-                'image': external_api['image'],
-                'ports': external_api['ports'],
-            }
-
-            if 'cap_add' in external_api:
-                service_config['cap_add'] = external_api['cap_add']
-            if 'privileged' in external_api:
-                service_config['privileged'] = external_api['privileged']
-
-            docker_compose['services'][service_name] = service_config
-            docker_compose['services']['request-directory']['depends_on'].append(
-                service_name)
-
-            # Add environment variables for this external API to the NextJS app service
-            if api_name in external_api_environment_variables:
-                docker_compose['services']['request-directory']['environment'].update(
-                    external_api_environment_variables[api_name]
-                )
-        else:
-            print(
-                f"No image information for external API '{api_name}'. Skipping.")
 
 # Write the docker-compose.yml file
 with open('docker-compose.yml', 'w') as f:
