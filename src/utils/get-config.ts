@@ -1,6 +1,6 @@
 export const runtime = 'nodejs';
 
-import fs from "node:fs";
+import fs from "node:fs/promises";
 import path from "node:path";
 import toml from "toml";
 
@@ -23,7 +23,7 @@ export interface APIConfiguration extends BaseAPIConfiguration {
 
 export async function getConfig() {
 	const filePath = path.join(process.cwd(), "config.toml");
-	const fileContent = fs.readFileSync(filePath, "utf8");
+	const fileContent = await fs.readFile(filePath, "utf-8");
 	const config = toml.parse(fileContent) as { api: APIConfiguration };
 
 	// load configs from `src/app/v1/**/config.ts` (default export) and then merge them with the toml config (just the [default].details)
@@ -57,7 +57,7 @@ async function loadConfigs() {
 	const configs: Record<string, any> = {};
 
 	const readDir = async (dir: string) => {
-		const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+		const entries = await fs.readdir(dir, { withFileTypes: true });
 
 		for (const entry of entries) {
 			const fullPath = path.join(dir, entry.name);
