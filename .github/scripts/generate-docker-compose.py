@@ -38,7 +38,7 @@ docker_compose['services']['nginx'] = {
         'NEXT_PUBLIC_SITE_URL': '${NEXT_PUBLIC_SITE_URL}',
     },
     'depends_on': ['request-directory'],
-    'command': '/bin/bash -c "/app/init-letsencrypt.sh && nginx -g \'daemon off;\'"'
+    'command': '/bin/sh -c "/app/init-letsencrypt.sh && nginx -g \'daemon off;\'"'
 }
 
 # Certbot dependencies service for SSL generation
