@@ -10,21 +10,19 @@ export async function GET(req: NextRequest) {
 
   const { data: { user }, error } = await supabase.auth.getUser();
 
-  console.log("user", user);
-
   if (error) {
-    return NextResponse.redirect(`${req.nextUrl.origin}/account`);
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin}/account`);
   }
 
   if (!user) {
-    return NextResponse.redirect(`${req.nextUrl.origin}/account`);
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin}/account`);
   }
 
   const searchParams = req.nextUrl.searchParams;
   const amount = searchParams.get("amount");
 
   if (!amount) {
-    return NextResponse.redirect(`${req.nextUrl.origin}/account`);
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin}/account`);
   }
 
   const productName = "Add funds to your account";
@@ -79,13 +77,13 @@ export async function GET(req: NextRequest) {
       user_id: user.id,
       amount: amount,
     },
-    success_url: `${req.nextUrl.origin}/account?purchase=success`,
-    cancel_url: `${req.nextUrl.origin}/pricing`,
+    success_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin}/account?purchase=success`,
+    cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin}/pricing`,
   });
 
   if (session?.url) {
     return NextResponse.redirect(session.url);
   }
 
-  return NextResponse.redirect(`${req.nextUrl.origin}/account`);
+  return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin}/account`);
 }
