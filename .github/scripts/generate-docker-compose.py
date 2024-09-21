@@ -48,7 +48,7 @@ docker_compose['services']['certbot'] = {
         './nginx/html:/var/www/html',  # Challenge files directory
         './certbot-etc:/etc/letsencrypt',  # Let's Encrypt cert storage
     ],
-    'entrypoint': '/bin/bash -c "exit 0"'  # Runs Certbot on NGINX startup
+    'entrypoint': '/bin/sh -c "exit 0"'  # Runs Certbot on NGINX startup
 }
 
 # Create NGINX config file for SSL and redirection
@@ -101,7 +101,7 @@ with open(nginx_config_file, 'w') as f:
     f.write(nginx_config)
 
 # Create Let's Encrypt initialization script with environment variable support
-letsencrypt_script = """#!/bin/bash
+letsencrypt_script = """#!/bin/sh
 
 domain=${NEXT_PUBLIC_SITE_URL}
 
