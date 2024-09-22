@@ -75,8 +75,9 @@ export async function GET(req: NextRequest) {
     customer_email: user.email,
     metadata: {
       user_id: user.id,
-      amount: amount,
+      amount,
     },
+    allow_promotion_codes: true,
     success_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin}/account?purchase=success`,
     cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin}/pricing`,
   });

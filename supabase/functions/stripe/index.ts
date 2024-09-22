@@ -50,7 +50,7 @@ Deno.serve(async (request) => {
 
       const { funds } = data;
 
-      const newFunds = funds + amount;
+      const newFunds = Number(funds) + Number(amount);
 
       const { error: updateError } = await supabase.from("users").update({
         funds: newFunds,
