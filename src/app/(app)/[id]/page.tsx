@@ -54,7 +54,8 @@ export default async function Page({
 			<div className="mt-4">
 				<Text>
 					To use this API, make a <Code>POST</Code> request to this endpoint:{" "}
-					<Code>https://request.directory/v1/{id}</Code>.
+					<Code>https://request.directory/v1/{id}</Code> with your API key in
+					the <Code>Authorization</Code> header.
 				</Text>
 			</div>
 			<Divider className="my-4" />

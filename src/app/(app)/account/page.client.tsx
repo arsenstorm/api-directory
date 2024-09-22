@@ -718,7 +718,7 @@ export function APIHistory() {
 					<FieldGroup>
 						<Field>
 							<Label>Request</Label>
-							<Markdown className="prose overflow-x-auto text-xs w-full mt-2">
+							<Markdown className="prose prose-zinc overflow-x-auto text-xs w-full mt-2">
 								{`\`\`\`json\n${JSON.stringify(
 									history.find((item) => item.id === viewHistory)?.request ??
 										{},
@@ -729,7 +729,7 @@ export function APIHistory() {
 						</Field>
 						<Field>
 							<Label>Response</Label>
-							<Markdown className="prose overflow-x-auto text-xs w-full mt-2">
+							<Markdown className="prose prose-zinc overflow-x-auto text-xs w-full mt-2">
 								{`\`\`\`json\n${JSON.stringify(
 									history.find((item) => item.id === viewHistory)?.response ??
 										{},

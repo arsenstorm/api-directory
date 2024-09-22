@@ -267,7 +267,7 @@ export function Output({ output }: { readonly output: any }) {
 			<Text>The response from the API.</Text>
 			<div className="group bg-white rounded-2xl">
 				<div className="relative">
-					<Markdown className="prose overflow-x-auto p-4 text-xs w-full">
+					<Markdown className="prose prose-zinc overflow-x-auto p-4 text-xs w-full">
 						{`\`\`\`json\n${JSON.stringify(output, null, 2)}\n\`\`\``}
 					</Markdown>
 				</div>
@@ -299,7 +299,7 @@ export function DocsButton({ docs }: { readonly docs: any }) {
 			</Button>
 			<Dialog open={docsOpen} onClose={closeDocs} size="5xl">
 				<DialogBody>
-					<Markdown className="prose">{docs}</Markdown>
+					<Markdown className="prose prose-zinc">{docs}</Markdown>
 				</DialogBody>
 				<DialogActions>
 					<Button color="dark" onClick={closeDocs}>

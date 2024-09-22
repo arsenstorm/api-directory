@@ -82,7 +82,7 @@ export async function middleware(request: NextRequest) {
     !user &&
     request.nextUrl.pathname.startsWith("/v1")
   ) {
-    return await validateAPIAccess({ request, response, headers: _headers });
+    return await validateAPIAccess({ request, headers: _headers });
   }
 
   return response;
@@ -95,11 +95,9 @@ export async function middleware(request: NextRequest) {
  */
 async function validateAPIAccess({
   request,
-  response,
   headers,
 }: {
   request: NextRequest;
-  response: NextResponse;
   headers: Headers;
 }) {
   const pathParts = request.nextUrl.pathname.split("/");
@@ -112,7 +110,18 @@ async function validateAPIAccess({
 
   const apiKey = request.headers.get("Authorization")?.split(" ")[1]; // Authorization: Bearer <api_key>
   if (!apiKey) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        message:
+          "Uh oh! If you’re using the Playground, make sure that you’re logged in.",
+        api:
+          "If you’re using the API, you’ve not added your API key to the Authorization header!",
+        error: "Unauthorized",
+      },
+      {
+        status: 401,
+      },
+    );
   }
 
   if (!process.env.UNKEY_API_ID) {
