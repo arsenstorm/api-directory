@@ -45,11 +45,26 @@ import { AnimatedNumber } from "@/components/animated-number";
 import { createClient } from "@/utils/supabase/client";
 import Markdown from "react-markdown";
 
-export function Funds({ data }: { readonly data: any }) {
+export function Funds() {
 	const supabase = createClient();
-	const [fundsRemaining, setFundsRemaining] = useState(data?.funds ?? 0);
+	const [fundsRemaining, setFundsRemaining] = useState(0);
 
 	useEffect(() => {
+		const fetchFunds = async () => {
+			const { data, error } = await supabase
+				.from("users")
+				.select("funds")
+				.maybeSingle();
+
+			if (error) {
+				console.error("Error fetching history:", error);
+			}
+
+			setFundsRemaining(data?.funds ?? 0);
+		};
+
+		fetchFunds();
+
 		const channel = supabase
 			.channel("realtime-funds")
 			.on(
@@ -63,7 +78,6 @@ export function Funds({ data }: { readonly data: any }) {
 					setFundsRemaining(payload.new.funds);
 				},
 			)
-
 			.subscribe();
 
 		return () => {
@@ -79,11 +93,7 @@ export function Funds({ data }: { readonly data: any }) {
 			<div>
 				<p className="text-7xl font-bold">
 					$
-					<AnimatedNumber
-						start={0}
-						end={fundsRemaining.toFixed(2)}
-						decimals={2}
-					/>
+					<AnimatedNumber start={0} end={fundsRemaining} decimals={2} />
 				</p>
 				<Text>
 					You have exactly ${fundsRemaining} remaining.{" "}
@@ -341,17 +351,30 @@ export interface APIHistoryData {
 	readonly user_id: string;
 }
 
-export function APIHistory({
-	data = [],
-}: {
-	readonly data: APIHistoryData[];
-}) {
+export function APIHistory() {
 	const [viewHistory, setViewHistory] = useState<string | null>(null);
-	const [history, setHistory] = useState<APIHistoryData[]>(data);
+	const [history, setHistory] = useState<APIHistoryData[]>([]);
 
 	const supabase = createClient();
 
 	useEffect(() => {
+		const fetchHistory = async () => {
+			const { data, error } = await supabase
+				.from("requests")
+				.select(
+					"id, timestamp, request, response, cost, service, status, user_id",
+				)
+				.order("timestamp", { ascending: false });
+
+			if (error) {
+				console.error("Error fetching history:", error);
+			}
+
+			setHistory(data ?? []);
+		};
+
+		fetchHistory();
+
 		const channel = supabase
 			.channel("realtime-requests")
 			.on(
@@ -399,7 +422,6 @@ export function APIHistory({
 					}
 				},
 			)
-
 			.subscribe();
 
 		return () => {

@@ -25,8 +25,6 @@ import {
 	CreateAPIKey,
 	Funds,
 } from "./page.client";
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
 
 export interface Key {
 	id: string;
@@ -69,8 +67,6 @@ export interface Key {
 }
 
 export default async function AccountPage() {
-	const supabase = createClient();
-
 	const permissionsConfig = Object.entries((await getConfig()).api).map(
 		([name, api]) => ({
 			name: api?.name ?? name,
@@ -78,26 +74,16 @@ export default async function AccountPage() {
 		}),
 	);
 
-	const [{ data: funds }, { data: history }] = await Promise.all([
-		supabase.from("users").select("funds").maybeSingle(),
-		supabase
-			.from("requests")
-			.select(
-				"id, timestamp, request, response, cost, service, status, user_id",
-			)
-			.order("timestamp", { ascending: false }),
-	]);
-
 	return (
 		<main>
 			<Heading>My Account</Heading>
 			<Text>View and manage your account information and settings.</Text>
 			<Divider className="my-4" />
-			<Funds data={funds} />
+			<Funds />
 			<Divider className="my-8" />
 			<APIKeys permissionsConfig={permissionsConfig} />
 			<Divider className="my-8" />
-			<APIHistory data={history ?? []} />
+			<APIHistory />
 		</main>
 	);
 }

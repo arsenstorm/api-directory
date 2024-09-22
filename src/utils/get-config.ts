@@ -39,7 +39,10 @@ export async function getConfig() {
 		const tomlConfig = config.api[api];
 
 		if (v1Config) {
-			config.api[api] = { ...tomlConfig, ...v1Config };
+			config.api = {
+				...config.api,
+				[api]: { ...tomlConfig, ...v1Config },
+			};
 		}
 	}
 
