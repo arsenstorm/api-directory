@@ -71,31 +71,22 @@ export interface Key {
 export default async function AccountPage() {
 	const supabase = createClient();
 
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
-
-	if (!user) {
-		return redirect("/sign-in");
-	}
-
-	const { data: funds } = await supabase.from("users").select("funds").single();
-
-	const { data: history, error } = await supabase
-		.from("requests")
-		.select("id, timestamp, request, response, cost, service, status, user_id")
-		.order("timestamp", { ascending: false });
-
-	if (error) {
-		console.error(error);
-	}
-
 	const permissionsConfig = Object.entries((await getConfig()).api).map(
 		([name, api]) => ({
 			name: api?.name ?? name,
 			id: name,
 		}),
 	);
+
+	const [{ data: funds }, { data: history }] = await Promise.all([
+		supabase.from("users").select("funds").maybeSingle(),
+		supabase
+			.from("requests")
+			.select(
+				"id, timestamp, request, response, cost, service, status, user_id",
+			)
+			.order("timestamp", { ascending: false }),
+	]);
 
 	return (
 		<main>
