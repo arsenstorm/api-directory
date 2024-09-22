@@ -6,15 +6,15 @@ import config from "./config";
 
 // Utils
 import { createClient } from "@/utils/supabase/server";
-import { createClient as createSupaClient } from "@/utils/supabase/supa";
 import { getEstimatedCost } from "@/utils/get-estimated-cost";
 import { updateFunds } from "@/utils/api/update-funds";
 import { logRequest } from "@/utils/api/log-request";
+import { shouldSaveEncrypt } from "@/utils/api/should-save-encrypt";
+import { saveFile } from "@/utils/api/save-file";
 
 // Returning Utils
 import { returnIsEnabled } from "@/utils/api/returning/is-enabled";
 import { returnCheckEnv } from "@/utils/api/returning/check-env";
-import { shouldSaveEncrypt } from "@/utils/api/should-save-encrypt";
 
 export async function POST(req: NextRequest) {
 	const authorization = req.headers.get("authorization") ?? undefined;
@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
 	}
 
 	const { noSave, encrypt } = await shouldSaveEncrypt(req);
-	const supa = createSupaClient();
 
 	await returnIsEnabled("nudenet");
 
@@ -137,17 +136,17 @@ export async function POST(req: NextRequest) {
 
 	// By default, we save the image to the database, users can opt out of this by passing ?noSave=true
 	if (!noSave) {
-		const image = Buffer.from(imageBuffer).toString("base64");
-
-		const { error: imageError } = await supa.storage.from(
-			"storage",
-		).upload(`${userData.id}/${requestId}/${imageName}`, image, {
-			cacheControl: "3600",
-			contentType: imageType,
-			upsert: true,
+		const { error } = await saveFile({
+			userId: userData.id,
+			requestId,
+			file: {
+				name: imageName,
+				type: imageType,
+				buffer: imageBuffer,
+			},
 		});
 
-		if (imageError) {
+		if (error) {
 			return NextResponse.json({
 				message: "Failed to upload image to storage.",
 			}, {
