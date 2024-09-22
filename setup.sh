@@ -91,16 +91,16 @@ then
     echo "Docker Compose has been installed."
 fi
 
-# Check if python3 is installed, if not, install it
-if ! command -v python3 &> /dev/null
+# Check if python3.12 is installed, if not, install it
+if ! command -v python3.12 &> /dev/null
 then
-    echo "python3 could not be found. Installing python3..."
+    echo "python3.12 could not be found. Installing python3.12..."
     sudo apt-get update
-    sudo apt-get install -y python3
+    sudo apt-get install -y python3.12
 fi
 
 # Check if venv module is available, if not, install it
-if ! python3 -m venv --help &> /dev/null
+if ! python3.12 -m venv --help &> /dev/null
 then
     echo "Installing 'python3.12-venv' package..."
     sudo apt-get install -y python3.12-venv
@@ -108,7 +108,7 @@ fi
 
 # Create a virtual environment
 if [ ! -d "venv" ]; then
-    python3 -m venv venv
+    python3.12 -m venv venv
 fi
 
 # Activate the virtual environment
@@ -131,7 +131,7 @@ then
 fi
 
 # Run the Python script to generate docker-compose.yml
-python3 << 'EOF'
+python3.12 << 'EOF'
 import toml
 import yaml
 import os
