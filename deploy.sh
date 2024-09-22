@@ -22,6 +22,13 @@ fi
 # Remove http:// or https:// from NEXT_PUBLIC_SITE_URL if present
 CLEAN_URL=$(echo "${NEXT_PUBLIC_SITE_URL}" | sed -e 's|^https\?://||')
 
+# check if we should enable tls
+if [ "$ENABLE_TLS" = "true" ]; then
+    TLS_FLAG="--tls"
+else
+    TLS_FLAG=""
+fi
+
 # Print the value of NEXT_PUBLIC_SITE_URL for debugging
 echo "Deploying to: ${CLEAN_URL}"
 
@@ -41,7 +48,7 @@ fi
 echo "Deploying to ${CLEAN_URL}"
 
 # Deploy with TLS (with added quotes and error checking)
-if ! docker-compose exec proxy kamal-proxy deploy main --target request-directory:3000 --host ${CLEAN_URL} --tls; then
+if ! docker-compose exec proxy kamal-proxy deploy main --target request-directory:3000 --host ${CLEAN_URL} ${TLS_FLAG}; then
     echo "Error: Deployment failed. Check the error message above."
     exit 1
 fi
