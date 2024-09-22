@@ -19,7 +19,11 @@ import { shouldSaveEncrypt } from "@/utils/api/should-save-encrypt";
 export async function POST(req: NextRequest) {
 	const authorization = req.headers.get("authorization") ?? undefined;
 
-	if (!authorization) {
+	const supabase = createClient(authorization);
+
+	const { data: { user } } = await supabase.auth.getUser();
+
+	if (!user) {
 		return NextResponse.json(
 			{
 				error: "Unauthorized",
@@ -31,8 +35,6 @@ export async function POST(req: NextRequest) {
 	}
 
 	const { noSave, encrypt } = await shouldSaveEncrypt(req);
-
-	const supabase = createClient(authorization);
 	const supa = createSupaClient();
 
 	await returnIsEnabled("nudenet");
@@ -194,7 +196,7 @@ export async function POST(req: NextRequest) {
 		const data = await apiResponse.json();
 
 		// Example with calculating the actual cost
-		actual = (duration * (estimated / 100)) ?? estimated;
+		actual = Number(((duration * (estimated / 100)) ?? estimated).toFixed(10));
 
 		// update funds
 		await updateFunds(userData, actual, 0);
@@ -203,7 +205,7 @@ export async function POST(req: NextRequest) {
 			...data,
 			funds: {
 				remaining: updatedUserData?.[0]?.funds ?? null,
-				actual: 0,
+				actual,
 			},
 		};
 
