@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
 		const data = await apiResponse.json();
 
 		// Example with calculating the actual cost
-		actual = Number(((duration * (estimated / 100)) || estimated).toFixed(10));
+		actual = Number(((duration * (estimated / 1000)) || estimated).toFixed(10));
 
 		// update funds
 		await updateFunds(userData, actual, 0);
