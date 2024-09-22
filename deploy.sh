@@ -36,6 +36,7 @@ if ! docker-compose ps | grep -q "proxy.*Up"; then
     echo "Error: Proxy container is not running. Check docker-compose logs."
     exit 1
 fi
+echo "docker-compose exec proxy kamal-proxy deploy main --target \"request-directory:3000\" --host \"${NEXT_PUBLIC_SITE_URL}\" --tls"
 
 # Deploy with TLS (with added quotes and error checking)
 if ! docker-compose exec proxy kamal-proxy deploy main --target "request-directory:3000" --host "${NEXT_PUBLIC_SITE_URL}" --tls; then
