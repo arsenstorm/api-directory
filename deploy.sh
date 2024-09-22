@@ -26,7 +26,7 @@ CLEAN_URL=$(echo "${NEXT_PUBLIC_SITE_URL}" | sed -e 's|^https\?://||')
 echo "Deploying to: ${CLEAN_URL}"
 
 # Run docker-compose up
-docker-compose up --build -d
+docker-compose up --build --force-recreate -d
 
 # Wait for containers to be ready (adjust sleep time if needed)
 echo "Waiting for containers to be ready..."
