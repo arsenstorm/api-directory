@@ -5,10 +5,14 @@ APIs for a variety of tasks with a single API key!
 
 ## Getting Started
 
-To get started with self-hosting Request Directory, run this command:
+To get started with self-hosting Request Directory, you have two options:
+
+### Automatic Setup (WIP)
+
+A simple, one-line command to get you started.
 
 ```bash
-# TODO!
+# TODO! See manual setup for now
 ```
 
 > [!NOTE]
@@ -17,7 +21,7 @@ To get started with self-hosting Request Directory, run this command:
 > take an input of the APIs you want to use and then automatically set up the
 > environment for you.
 
-## Manual Setup
+### Manual Setup
 
 Eventually, I’ll get rid of the need for Python, but for now, here’s how to set
 up the project:
@@ -48,7 +52,7 @@ chmod +x setup.sh
 The stuff below talks about the stuff that goes on in the development
 environment.
 
-## Docker
+### Docker
 
 To build the docker image, run the following command:
 
@@ -62,7 +66,7 @@ To run the docker container, run the following command:
 docker run -it -p3000:3000 request-directory
 ```
 
-## Supabase
+### Supabase
 
 Request Directory uses Supabase for authentication, database, storage, and edge
 functions.
@@ -72,7 +76,14 @@ Edge functions are used to handle incoming Webhooks (such as from Stripe).
 Storage is used to store images, videos, and other files where appropriate (such
 as the video creation API).
 
-## Unkey
+Supabase Realtime is used to show real-time updates to the user.
+
+#### Managed or Local?
+
+We _strongly_ recommend using the managed version of Supabase. It’s got a
+generous free tier and works well.
+
+### Unkey
 
 Request Directory uses [Unkey](https://unkey.dev) to manage API keys.
 
@@ -81,12 +92,12 @@ I chose Unkey because it’s open source and has a generous free tier.
 Although it’s possible to self-host Unkey, documentation is not available (see
 [this issue](https://github.com/unkeyed/unkey/issues/1964)).
 
-## APIs
+### APIs
 
 Request Directory contains a bunch of different APIs that are all hosted on the
 same domain.
 
-### NudeNet
+#### NudeNet
 
 Details about the NudeNet API can be found
 [here](https://github.com/notai-tech/nudenet).
@@ -102,11 +113,11 @@ This will make the API available at `http://localhost:8080/infer`.
 Request Directory uses this API locally at `http://localhost:3000/v1/nudenet` or
 `https://request.directory/v1/nudenet` in production.
 
-## Kamal Proxy
+### Kamal Proxy
 
 Request Directory uses [Kamal Proxy](https://github.com/basecamp/kamal-proxy).
 
-### Zero Downtime Deployments
+#### Zero Downtime Deployments
 
 Kamal Proxy allows for zero downtime deployments. When a new version of the
 application is deployed, the old version is kept alive and the new version is
