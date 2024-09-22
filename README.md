@@ -102,6 +102,26 @@ This will make the API available at `http://localhost:8080/infer`.
 Request Directory uses this API locally at `http://localhost:3000/v1/nudenet` or
 `https://request.directory/v1/nudenet` in production.
 
+## Kamal Proxy
+
+Request Directory uses [Kamal Proxy](https://github.com/basecamp/kamal-proxy).
+
+### Zero Downtime Deployments
+
+Kamal Proxy allows for zero downtime deployments. When a new version of the
+application is deployed, the old version is kept alive and the new version is
+rolled out in a controlled manner.
+
+To deploy a new version of the application, run the following command:
+
+```bash
+./deploy.sh
+```
+
+> [!CAUTION]
+>
+> This is not tested. I’m still working on it.
+
 ## FAQ
 
 ### Will you be adding more APIs?
