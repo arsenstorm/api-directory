@@ -10,7 +10,7 @@ import { getEstimatedCost } from "@/utils/get-estimated-cost";
 import { updateFunds } from "@/utils/api/update-funds";
 import { logRequest } from "@/utils/api/log-request";
 import { shouldSaveEncrypt } from "@/utils/api/should-save-encrypt";
-import { saveFile } from "@/utils/api/save-file";
+import { saveFile } from "@/utils/api/files/save-file";
 
 // Returning Utils
 import { returnIsEnabled } from "@/utils/api/returning/is-enabled";
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
 
 	// By default, we save the image to the database, users can opt out of this by passing ?noSave=true
 	if (!noSave) {
-		const { error } = await saveFile({
+		const { url, error } = await saveFile({
 			userId: userData.id,
 			requestId,
 			file: {
@@ -144,15 +144,33 @@ export async function POST(req: NextRequest) {
 				type: imageType,
 				buffer: imageBuffer,
 			},
+			returnUrl: true,
 		});
 
 		if (error) {
-			return NextResponse.json({
-				message: "Failed to upload image to storage.",
-			}, {
-				status: 400,
-			});
+			return NextResponse.json(
+				{
+					message: "Failed to upload image to storage.",
+				},
+				{
+					status: 400,
+				},
+			);
 		}
+
+		await logRequest({
+			requestId,
+			userId: userData.id,
+			service: "nudenet",
+			status: "pending",
+			// save some data about the request because
+			// it's useful to store in the history
+			requestData: {
+				url,
+				type: "form-data",
+			},
+			encrypt,
+		});
 	}
 
 	// Manually create the multipart/form-data body

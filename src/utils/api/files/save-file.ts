@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/supa";
+import { getFileUrl } from "./get-file-url";
 
 /**
  * Saves a file to the storage bucket.
@@ -17,6 +18,7 @@ export async function saveFile({
   userId,
   requestId,
   file,
+  returnUrl = false,
 }: {
   readonly userId: string;
   readonly requestId: string;
@@ -25,8 +27,10 @@ export async function saveFile({
     readonly type: string;
     readonly buffer: Buffer;
   };
+  readonly returnUrl: boolean;
 }): Promise<{
   readonly success: boolean;
+  readonly url: string | null;
   readonly error: Error | null;
 }> {
   const supa = createClient();
@@ -44,12 +48,44 @@ export async function saveFile({
   if (imageError) {
     return {
       success: false,
+      url: null,
       error: imageError,
+    };
+  }
+
+  if (returnUrl) {
+    const { url, error } = await getFileUrl({
+      userId,
+      requestId,
+      fileName: file.name,
+    });
+
+    if (error) {
+      return {
+        success: false,
+        url: null,
+        error: error,
+      };
+    }
+
+    if (!url) {
+      return {
+        success: false,
+        url: null,
+        error: new Error("No URL returned from supabase"),
+      };
+    }
+
+    return {
+      success: true,
+      url,
+      error: null,
     };
   }
 
   return {
     success: true,
+    url: null,
     error: null,
   };
 }
