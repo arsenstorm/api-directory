@@ -38,10 +38,10 @@ if ! docker-compose ps | grep -q "proxy.*Up"; then
     exit 1
 fi
 
-echo "Deploying to \"${CLEAN_URL}\""
+echo "Deploying to ${CLEAN_URL}"
 
 # Deploy with TLS (with added quotes and error checking)
-if ! docker-compose exec proxy kamal-proxy deploy main --target "request-directory:3000" --host "${CLEAN_URL}" --tls; then
+if ! docker-compose exec proxy kamal-proxy deploy main --target request-directory:3000 --host ${CLEAN_URL} --tls; then
     echo "Error: Deployment failed. Check the error message above."
     exit 1
 fi
