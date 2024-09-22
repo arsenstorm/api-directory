@@ -596,12 +596,17 @@ export function APIHistory() {
 					});
 
 					switch (payload.eventType) {
-						case "INSERT":
-							setHistory((prev) => [
-								...prev,
-								mapPayloadToAPIHistoryData(payload.new),
-							]);
+						case "INSERT": {
+							const newItem = mapPayloadToAPIHistoryData(payload.new);
+							const updatedHistory = [...history, newItem];
+							updatedHistory.sort(
+								(a, b) =>
+									new Date(b.timestamp).getTime() -
+									new Date(a.timestamp).getTime(),
+							);
+							setHistory(updatedHistory);
 							break;
+						}
 						case "UPDATE":
 							setHistory((prev) =>
 								prev.map((item) =>
@@ -626,7 +631,7 @@ export function APIHistory() {
 		return () => {
 			supabase.removeChannel(channel);
 		};
-	}, [supabase]);
+	}, [supabase, history]);
 
 	return (
 		<div>

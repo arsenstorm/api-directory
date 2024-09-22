@@ -25,6 +25,7 @@
     "framer-motion": "^11.5.6",
     "jose": "^5.9.2",
     "next": "15.0.0-rc.0",
+    "next-crypto": "^1.0.8",
     "react": "19.0.0-rc-f994737d14-20240522",
     "react-dom": "19.0.0-rc-f994737d14-20240522",
     "react-highlight-words": "^0.20.0",

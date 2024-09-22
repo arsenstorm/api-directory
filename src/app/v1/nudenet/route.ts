@@ -1,7 +1,3 @@
-// Functions
-import { isApiEnabled } from "@/utils/is-api-enabled";
-import { checkEnv } from "@/utils/check-env";
-
 // Types
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -12,6 +8,13 @@ import config from "./config";
 import { createClient } from "@/utils/supabase/server";
 import { createClient as createSupaClient } from "@/utils/supabase/supa";
 import { getEstimatedCost } from "@/utils/get-estimated-cost";
+import { updateFunds } from "@/utils/api/update-funds";
+import { logRequest } from "@/utils/api/log-request";
+
+// Returning Utils
+import { returnIsEnabled } from "@/utils/api/returning/is-enabled";
+import { returnCheckEnv } from "@/utils/api/returning/check-env";
+import { shouldSaveEncrypt } from "@/utils/api/should-save-encrypt";
 
 export async function POST(req: NextRequest) {
 	const authorization = req.headers.get("authorization") ?? undefined;
@@ -27,10 +30,14 @@ export async function POST(req: NextRequest) {
 		);
 	}
 
-	const supabase = createClient(authorization);
+	const { noSave, encrypt } = await shouldSaveEncrypt(req);
 
-	const isEnabled = await isApiEnabled("nudenet");
-	const { estimated, actual = null } = await getEstimatedCost("nudenet");
+	const supabase = createClient(authorization);
+	const supa = createSupaClient();
+
+	await returnIsEnabled("nudenet");
+
+	let { estimated, actual = null } = await getEstimatedCost("nudenet");
 
 	// NOTE: Since we're using a custom way of signing a user in with their API key,
 	// we need to make sure that any Supabase RLS policies are applied to the `public` role
@@ -55,31 +62,16 @@ export async function POST(req: NextRequest) {
 		});
 	}
 
-	const updatedUserData = await subtractFunds(userData, actual, estimated);
+	const updatedUserData = await updateFunds(userData, actual, estimated);
 
-	const { check, message } = checkEnv(config?.env ?? []);
+	await returnCheckEnv(config?.env ?? []);
 
-	if (!isEnabled) {
-		return NextResponse.json(
-			{
-				message: "This API is not enabled.",
-			},
-			{
-				status: 400,
-			},
-		);
-	}
-
-	if (!check) {
-		return NextResponse.json(
-			{
-				message,
-			},
-			{
-				status: 400,
-			},
-		);
-	}
+	const requestId = await logRequest({
+		userId: userData.id,
+		service: "nudenet",
+		status: "pending",
+		encrypt,
+	});
 
 	let imageBuffer: Buffer;
 	let imageName: string;
@@ -88,7 +80,19 @@ export async function POST(req: NextRequest) {
 	const contentType = req.headers.get("content-type");
 
 	if (contentType?.includes("application/json")) {
-		const { url } = await req.json();
+		const body = await req.json();
+
+		await logRequest({
+			requestId,
+			userId: userData.id,
+			service: "nudenet",
+			status: "pending",
+			requestData: body,
+			encrypt,
+		});
+
+		const { url } = body;
+
 		if (!url) {
 			return NextResponse.json({
 				message: "You haven't provided a URL. The `url` field is required.",
@@ -127,6 +131,27 @@ export async function POST(req: NextRequest) {
 		imageType = image.type;
 	}
 
+	// By default, we save the image to the database, users can opt out of this by passing ?noSave=true
+	if (!noSave) {
+		const image = Buffer.from(imageBuffer).toString("base64");
+
+		const { error: imageError } = await supa.storage.from(
+			"storage",
+		).upload(`${userData.id}/${requestId}/${imageName}`, image, {
+			cacheControl: "3600",
+			contentType: imageType,
+			upsert: true,
+		});
+
+		if (imageError) {
+			return NextResponse.json({
+				message: "Failed to upload image to storage.",
+			}, {
+				status: 400,
+			});
+		}
+	}
+
 	// Manually create the multipart/form-data body
 	const boundary = `----WebKitFormBoundary${
 		Math.random().toString(36).slice(2)
@@ -142,62 +167,72 @@ export async function POST(req: NextRequest) {
 
 	const fullBody = Buffer.concat([preamble, imageBuffer, ending]);
 
-	const response = await fetch(
-		process.env.NUDENET_URL ?? "http://localhost:8080/infer",
-		{
-			method: "POST",
-			headers: {
-				"Content-Length": fullBody.length.toString(),
-				"Content-Type": `multipart/form-data; boundary=${boundary}`,
+	try {
+		const startTime = performance.now();
+
+		const apiResponse = await fetch(
+			process.env.NUDENET_URL ?? "http://localhost:8080/infer",
+			{
+				method: "POST",
+				headers: {
+					"Content-Length": fullBody.length.toString(),
+					"Content-Type": `multipart/form-data; boundary=${boundary}`,
+				},
+				body: fullBody,
 			},
-			body: fullBody,
-		},
-	);
+		);
 
-	const data = await response.json();
+		const endTime = performance.now();
+		const duration = endTime - startTime;
 
-	// if we were hosting on Vercel, we could use the `@vercel/functions` package
-	// with `waitUntil` to run some cleanup code after the response has been sent.
-	//
-	// However, since we're not and are working to host via Docker, we have to
-	// run waitUntil in the main thread.
+		if (!apiResponse.ok) {
+			throw new Error("Failed to get response from nudenet.");
+		}
 
-	return NextResponse.json(
-		{ ...data, funds: updatedUserData?.[0]?.funds ?? null },
-		{
-			status: 200,
-		},
-	);
-}
+		const data = await apiResponse.json();
 
-async function subtractFunds(
-	userData: { funds: number; id: string },
-	actual: number | null,
-	estimated: number,
-) {
-	const supa = createSupaClient();
+		const response = { ...data, funds: updatedUserData?.[0]?.funds ?? null };
 
-	// TODO: Calculating the `actual` cost of the API call must be done soon.
-	const precision = 6;
+		// Example with calculating the actual cost
+		actual = (duration * (estimated / 100)) ?? estimated;
 
-	const safeActual = actual ? Number.parseFloat(actual.toFixed(precision)) : 0;
-	const safeEstimated = estimated
-		? Number.parseFloat(estimated.toFixed(precision))
-		: 0;
+		await logRequest({
+			requestId,
+			userId: userData.id,
+			service: "nudenet",
+			status: "success",
+			responseData: response,
+			cost: actual ?? estimated,
+			encrypt,
+		});
 
-	const newAmount = Number.parseFloat(
-		(userData.funds - (safeActual ?? safeEstimated)).toFixed(precision),
-	);
+		return NextResponse.json(
+			response,
+			{
+				status: 200,
+			},
+		);
+	} catch (error) {
+		const response = {
+			message: "Failed to get response from nudenet.",
+			funds: updatedUserData?.[0]?.funds ?? null,
+		};
 
-	// Subtract funds from user
-	const { data: updatedUserData, error: updateFundsError } = await supa
-		.from("users").update({
-			funds: newAmount,
-		}).eq("id", userData.id).select("funds");
+		await updateFunds(userData, actual, estimated, true);
 
-	if (updateFundsError) {
-		throw new Error("Failed to update user funds.");
+		await logRequest({
+			requestId,
+			userId: userData.id,
+			service: "nudenet",
+			status: "failed",
+			responseData: response,
+			cost: 0, // we don't charge for failed requests
+			encrypt,
+		});
+		return NextResponse.json({
+			message: "Failed to get response from nudenet.",
+		}, {
+			status: 400,
+		});
 	}
-
-	return updatedUserData;
 }
