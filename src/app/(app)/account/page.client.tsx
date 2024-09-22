@@ -115,6 +115,65 @@ export function APIKeys({
 }: {
 	readonly permissionsConfig: { readonly name: string; readonly id: string }[];
 }) {
+	const supabase = createClient();
+	const [isLoading, setIsLoading] = useState(true);
+	const [keys, setKeys] = useState<Key[]>([]);
+	const [manageKey, setManageKey] = useState<Key | null>(null);
+
+	useEffect(() => {
+		const fetchKeys = async () => {
+			const keys = await getKey();
+			setKeys(keys ?? []);
+			setIsLoading(false);
+		};
+
+		fetchKeys();
+
+		const channel = supabase
+			.channel("realtime-keys")
+			.on(
+				"postgres_changes",
+				{
+					event: "*",
+					schema: "public",
+					table: "keys",
+				},
+				(payload) => {
+					switch (payload.eventType) {
+						case "INSERT":
+						case "UPDATE":
+							fetchKeys();
+							break;
+						case "DELETE":
+							setKeys((prev) =>
+								prev.filter((item) => item.id !== payload.old.id),
+							);
+							if (manageKey?.id === payload.old.id) {
+								setManageKey(null);
+							}
+							break;
+						default:
+							break;
+					}
+				},
+			)
+			.subscribe();
+
+		return () => {
+			supabase.removeChannel(channel);
+		};
+	}, [supabase, manageKey]);
+
+	const handleOpen = useCallback(
+		(keyId: string) => {
+			const key = keys.find((key) => key.id === keyId);
+			if (key) {
+				setManageKey(key);
+			}
+		},
+		[keys],
+	);
+
 	return (
 		<div>
 			<CreateAPIKey permissionsConfig={permissionsConfig} />
@@ -131,36 +190,26 @@ export function APIKeys({
 					</TableRow>
 				</TableHead>
 				<TableBody>
-					<APIKeysList />
+					{isLoading && <APIKeysListLoading />}
+					{keys.length === 0 && !isLoading && <APIKeysListEmpty />}
+					{keys.map((key) => (
+						<APIKeysListItem
+							key={key.id}
+							data={key}
+							handleOpen={() => {
+								handleOpen(key.id);
+							}}
+						/>
+					))}
 				</TableBody>
 			</Table>
+			<ManageAPIKey
+				data={manageKey}
+				isOpen={!!manageKey}
+				handleClose={() => setManageKey(null)}
+			/>
 		</div>
 	);
-}
-
-function APIKeysList() {
-	const [isLoading, setIsLoading] = useState(true);
-	const [keys, setKeys] = useState<Key[]>([]);
-
-	useEffect(() => {
-		const fetchKeys = async () => {
-			const keys = await getKey();
-			setKeys(keys ?? []);
-			setIsLoading(false);
-		};
-
-		fetchKeys();
-	}, []);
-
-	if (isLoading) {
-		return <APIKeysListLoading />;
-	}
-
-	if (keys.length === 0) {
-		return <APIKeysListEmpty />;
-	}
-
-	return keys.map((key) => <APIKeysListItem key={key.id} data={key} />);
 }
 
 function APIKeysListLoading() {
@@ -183,7 +232,10 @@ function APIKeysListEmpty() {
 	);
 }
 
-export function APIKeysListItem({ data }: { readonly data: Key }) {
+function APIKeysListItem({
+	data,
+	handleOpen,
+}: { readonly data: Key; readonly handleOpen: () => void }) {
 	return (
 		<TableRow>
 			<TableCell>{data.id}</TableCell>
@@ -193,15 +245,88 @@ export function APIKeysListItem({ data }: { readonly data: Key }) {
 			</TableCell>
 			<TableCell className="w-fit">
 				<div className="-mx-0 -my-1.5">
-					<Button
-						href={`/profile/${data.id}`} // TODO: Add the manage key page
-						disabled
-					>
-						Manage Key
-					</Button>
+					<Button onClick={handleOpen}>Manage Key</Button>
 				</div>
 			</TableCell>
 		</TableRow>
+	);
+}
+
+function ManageAPIKey({
+	data,
+	isOpen,
+	handleClose,
+}: {
+	readonly data: Key | null;
+	readonly isOpen: boolean;
+	readonly handleClose: () => void;
+}) {
+	return (
+		<Dialog open={isOpen} onClose={handleClose} size="5xl">
+			<DialogTitle>Manage API Key</DialogTitle>
+			<DialogDescription>Manage your API key.</DialogDescription>
+			<DialogBody>
+				<Subheading level={4}>Actions</Subheading>
+				<Text>You can suspend, terminate, or update this key at any time.</Text>
+				<Divider className="my-4" soft />
+				<DeleteAPIKey data={data} />
+				<Divider className="my-4" />
+				<Subheading level={4}>Usage</Subheading>
+				<Text>
+					Below is the usage for the API key beginning with{" "}
+					<Code>{data?.start}</Code>.
+				</Text>
+				<Divider soft className="my-4" />
+				<pre>{JSON.stringify(data, null, 2)}</pre>
+			</DialogBody>
+			<DialogActions>
+				<Button onClick={handleClose}>Close</Button>
+			</DialogActions>
+		</Dialog>
+	);
+}
+
+function DeleteAPIKey({
+	data,
+}: {
+	readonly data: Key | null;
+}) {
+	const [isOpen, setIsOpen] = useState(false);
+
+	const handleOpen = useCallback(() => setIsOpen(true), []);
+	const handleClose = useCallback(() => setIsOpen(false), []);
+
+	const handleDelete = useCallback(async () => {
+		await fetch("/api/keys", {
+			method: "DELETE",
+			body: JSON.stringify({ keyId: data?.id }),
+		});
+		handleClose();
+	}, [data, handleClose]);
+
+	return (
+		<div>
+			<Button onClick={handleOpen} color="red">
+				Delete API Key
+			</Button>
+			<Dialog open={isOpen} onClose={handleClose}>
+				<DialogTitle>Delete API Key</DialogTitle>
+				<DialogDescription>
+					Are you sure you want to delete this API key?
+				</DialogDescription>
+				<DialogBody>
+					<Text>This action cannot be undone.</Text>
+				</DialogBody>
+				<DialogActions>
+					<Button onClick={handleClose} plain>
+						Cancel
+					</Button>
+					<Button onClick={handleDelete} color="red">
+						Delete API Key
+					</Button>
+				</DialogActions>
+			</Dialog>
+		</div>
 	);
 }
 
