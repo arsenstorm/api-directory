@@ -19,23 +19,43 @@ if [ -z "$NEXT_PUBLIC_SITE_URL" ]; then
     exit 1
 fi
 
-# Check if required dependencies are installed
+# Check if python3 is installed, if not, install it
 if ! command -v python3 &> /dev/null
 then
-    echo "python3 could not be found. Please install python3."
-    exit 1
+    echo "python3 could not be found. Installing python3..."
+    sudo apt-get update
+    sudo apt-get install -y python3
 fi
 
-if ! python3 -c "import toml" &> /dev/null
+# Check if venv module is available, if not, install it
+if ! python3 -m venv --help &> /dev/null
 then
-    echo "Installing 'toml' package for python3..."
-    pip3 install toml
+    echo "Installing 'python3-venv' package..."
+    sudo apt-get install -y python3-venv
 fi
 
-if ! python3 -c "import yaml" &> /dev/null
+# Create a virtual environment
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+fi
+
+# Activate the virtual environment
+source venv/bin/activate
+
+# Upgrade pip in the virtual environment
+pip install --upgrade pip
+
+# Install required Python packages in the virtual environment
+if ! python -c "import toml" &> /dev/null
 then
-    echo "Installing 'PyYAML' package for python3..."
-    pip3 install PyYAML
+    echo "Installing 'toml' package..."
+    pip install toml
+fi
+
+if ! python -c "import yaml" &> /dev/null
+then
+    echo "Installing 'PyYAML' package..."
+    pip install PyYAML
 fi
 
 # Run the Python script to generate docker-compose.yml
