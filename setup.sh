@@ -142,7 +142,6 @@ with open('config.toml', 'r') as f:
 
 # Initialize docker-compose structure
 docker_compose = {
-    'version': '3.8',
     'services': {}
 }
 
