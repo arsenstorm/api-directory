@@ -35,11 +35,9 @@ export async function saveFile({
 }> {
   const supa = createClient();
 
-  const fileToSave = Buffer.from(file.buffer).toString("base64");
-
   const { error: imageError } = await supa.storage.from(
     "storage",
-  ).upload(`${userId}/${requestId}/${file.name}`, fileToSave, {
+  ).upload(`${userId}/${requestId}/${file.name}`, file.buffer, {
     cacheControl: "3600",
     contentType: file.type,
     upsert: true,
