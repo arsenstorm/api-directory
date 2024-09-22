@@ -221,7 +221,7 @@ export async function POST(req: NextRequest) {
 		const response = {
 			...data,
 			funds: {
-				remaining: updatedUserData?.[0]?.funds ?? null,
+				remaining: userData ? userData.funds - actual : null,
 				actual,
 			},
 		};
