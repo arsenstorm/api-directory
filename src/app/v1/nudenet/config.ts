@@ -8,7 +8,7 @@ export const nudenetConfig = {
   },
   pricing: {
     estimated: 0.0001, // roughly $0.0001 per image moderated
-    price: 0.0001, // we charge $0.0001 per image moderated
+    price: null, // we dynamically calculate the price
   },
   request: {
     method: "POST",

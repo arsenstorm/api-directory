@@ -62,6 +62,8 @@ export async function POST(req: NextRequest) {
 		});
 	}
 
+	// NOTE: If `actual` is null, we'll subtract the estimated cost,
+	// then later, we'll calculate the actual cost and update the funds again.
 	const updatedUserData = await updateFunds(userData, actual, estimated);
 
 	await returnCheckEnv(config?.env ?? []);
@@ -191,10 +193,19 @@ export async function POST(req: NextRequest) {
 
 		const data = await apiResponse.json();
 
-		const response = { ...data, funds: updatedUserData?.[0]?.funds ?? null };
-
 		// Example with calculating the actual cost
 		actual = (duration * (estimated / 100)) ?? estimated;
+
+		// update funds
+		await updateFunds(userData, actual, 0);
+
+		const response = {
+			...data,
+			funds: {
+				remaining: updatedUserData?.[0]?.funds ?? null,
+				actual: 0,
+			},
+		};
 
 		await logRequest({
 			requestId,
@@ -215,10 +226,13 @@ export async function POST(req: NextRequest) {
 	} catch (error) {
 		const response = {
 			message: "Failed to get response from nudenet.",
-			funds: updatedUserData?.[0]?.funds ?? null,
+			funds: {
+				remaining: updatedUserData?.[0]?.funds ?? null,
+				actual: 0,
+			},
 		};
 
-		await updateFunds(userData, actual, estimated, true);
+		await updateFunds(userData, estimated, 0, "add");
 
 		await logRequest({
 			requestId,
