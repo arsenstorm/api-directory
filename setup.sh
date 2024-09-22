@@ -102,8 +102,8 @@ fi
 # Check if venv module is available, if not, install it
 if ! python3 -m venv --help &> /dev/null
 then
-    echo "Installing 'python3-venv' package..."
-    sudo apt-get install -y python3-venv
+    echo "Installing 'python3.12-venv' package..."
+    sudo apt-get install -y python3.12-venv
 fi
 
 # Create a virtual environment
