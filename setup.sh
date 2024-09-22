@@ -293,4 +293,10 @@ with open('docker-compose.yml', 'w') as f:
 print("docker-compose.yml has been generated successfully.")
 EOF
 
+echo "docker-compose.yml has been generated successfully."
+
 chmod +x ./deploy.sh
+
+echo "Starting deployment..."
+./deploy.sh
+echo "Deployment completed."
