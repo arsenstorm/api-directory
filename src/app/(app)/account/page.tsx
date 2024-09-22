@@ -1,30 +1,13 @@
 // UI
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
 import { Text } from "@/components/ui/text";
 import { Divider } from "@/components/ui/divider";
 import { Heading } from "@/components/ui/heading";
 
-// Hooks
-import { Suspense } from "react";
-
-// Actions
-import { getKey } from "@/actions/get-key";
+// Utils
 import { getConfig } from "@/utils/get-config";
 
 // Components
-import {
-	APIHistory,
-	APIKeysListItem,
-	CreateAPIKey,
-	Funds,
-} from "./page.client";
+import { APIHistory, APIKeys, Funds } from "./page.client";
 
 export interface Key {
 	id: string;
@@ -85,67 +68,5 @@ export default async function AccountPage() {
 			<Divider className="my-8" />
 			<APIHistory />
 		</main>
-	);
-}
-
-function APIKeys({
-	permissionsConfig,
-}: {
-	readonly permissionsConfig: { readonly name: string; readonly id: string }[];
-}) {
-	return (
-		<div>
-			<CreateAPIKey permissionsConfig={permissionsConfig} />
-			<Divider soft className="my-4" />
-			<Table>
-				<TableHead>
-					<TableRow>
-						<TableHeader>ID</TableHeader>
-						<TableHeader>Name</TableHeader>
-						<TableHeader>Hint</TableHeader>
-						<TableHeader className="relative w-0">
-							<span className="sr-only">Actions</span>
-						</TableHeader>
-					</TableRow>
-				</TableHead>
-				<TableBody>
-					<Suspense fallback={<APIKeysListLoading />}>
-						<APIKeysList />
-					</Suspense>
-				</TableBody>
-			</Table>
-		</div>
-	);
-}
-
-async function APIKeysList() {
-	const keys = (await getKey()) ?? [];
-
-	await new Promise((resolve) => setTimeout(resolve, 1000));
-
-	if (keys.length === 0) {
-		return <APIKeysListEmpty />;
-	}
-
-	return keys.map((key) => <APIKeysListItem key={key.id} data={key} />);
-}
-
-function APIKeysListLoading() {
-	return (
-		<TableRow>
-			<TableCell colSpan={4} className="text-zinc-500 text-center">
-				Getting your API keys...
-			</TableCell>
-		</TableRow>
-	);
-}
-
-function APIKeysListEmpty() {
-	return (
-		<TableRow>
-			<TableCell colSpan={4} className="text-zinc-500 text-center">
-				No API keys found.
-			</TableCell>
-		</TableRow>
 	);
 }

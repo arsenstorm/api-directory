@@ -44,6 +44,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AnimatedNumber } from "@/components/animated-number";
 import { createClient } from "@/utils/supabase/client";
 import Markdown from "react-markdown";
+import { getKey } from "@/actions/get-key";
 
 export function Funds() {
 	const supabase = createClient();
@@ -107,6 +108,79 @@ export function Funds() {
 interface KeyCreatedData {
 	id: string;
 	key: string;
+}
+
+export function APIKeys({
+	permissionsConfig,
+}: {
+	readonly permissionsConfig: { readonly name: string; readonly id: string }[];
+}) {
+	return (
+		<div>
+			<CreateAPIKey permissionsConfig={permissionsConfig} />
+			<Divider soft className="my-4" />
+			<Table>
+				<TableHead>
+					<TableRow>
+						<TableHeader>ID</TableHeader>
+						<TableHeader>Name</TableHeader>
+						<TableHeader>Hint</TableHeader>
+						<TableHeader className="relative w-0">
+							<span className="sr-only">Actions</span>
+						</TableHeader>
+					</TableRow>
+				</TableHead>
+				<TableBody>
+					<APIKeysList />
+				</TableBody>
+			</Table>
+		</div>
+	);
+}
+
+function APIKeysList() {
+	const [isLoading, setIsLoading] = useState(true);
+	const [keys, setKeys] = useState<Key[]>([]);
+
+	useEffect(() => {
+		const fetchKeys = async () => {
+			const keys = await getKey();
+			setKeys(keys ?? []);
+			setIsLoading(false);
+		};
+
+		fetchKeys();
+	}, []);
+
+	if (isLoading) {
+		return <APIKeysListLoading />;
+	}
+
+	if (keys.length === 0) {
+		return <APIKeysListEmpty />;
+	}
+
+	return keys.map((key) => <APIKeysListItem key={key.id} data={key} />);
+}
+
+function APIKeysListLoading() {
+	return (
+		<TableRow>
+			<TableCell colSpan={4} className="text-zinc-500 text-center">
+				Getting your API keys...
+			</TableCell>
+		</TableRow>
+	);
+}
+
+function APIKeysListEmpty() {
+	return (
+		<TableRow>
+			<TableCell colSpan={4} className="text-zinc-500 text-center">
+				No API keys found.
+			</TableCell>
+		</TableRow>
+	);
 }
 
 export function APIKeysListItem({ data }: { readonly data: Key }) {
