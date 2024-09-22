@@ -19,10 +19,11 @@ if [ -z "$NEXT_PUBLIC_SITE_URL" ]; then
     exit 1
 fi
 
-# ... existing code ...
+# Remove http:// or https:// from NEXT_PUBLIC_SITE_URL if present
+CLEAN_URL=$(echo "${NEXT_PUBLIC_SITE_URL}" | sed -e 's|^https\?://||')
 
 # Print the value of NEXT_PUBLIC_SITE_URL for debugging
-echo "Deploying to: ${NEXT_PUBLIC_SITE_URL}"
+echo "Deploying to: ${CLEAN_URL}"
 
 # Run docker-compose up
 docker-compose up --build --force-recreate -d
@@ -36,10 +37,11 @@ if ! docker-compose ps | grep -q "proxy.*Up"; then
     echo "Error: Proxy container is not running. Check docker-compose logs."
     exit 1
 fi
-echo "docker-compose exec proxy kamal-proxy deploy main --target \"request-directory:3000\" --host \"${NEXT_PUBLIC_SITE_URL}\" --tls"
+
+echo "Deploying to \"${CLEAN_URL}\""
 
 # Deploy with TLS (with added quotes and error checking)
-if ! docker-compose exec proxy kamal-proxy deploy main --target "request-directory:3000" --host "${NEXT_PUBLIC_SITE_URL}" --tls; then
+if ! docker-compose exec proxy kamal-proxy deploy main --target "request-directory:3000" --host "${CLEAN_URL}" --tls; then
     echo "Error: Deployment failed. Check the error message above."
     exit 1
 fi
