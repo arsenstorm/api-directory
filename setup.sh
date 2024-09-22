@@ -1,8 +1,50 @@
+#!/bin/bash
+
+# Ensure the script is run from the directory where the config.toml file is located
+SCRIPT_DIR=$(dirname "$0")
+cd "$SCRIPT_DIR"
+
+# Check if .env file exists
+if [ ! -f ".env" ]; then
+    echo ".env file not found. Please create a .env file with the necessary environment variables."
+    exit 1
+fi
+
+# Load environment variables from .env file
+export $(grep -v '^#' .env | xargs)
+
+# Check if NEXT_PUBLIC_SITE_URL is set
+if [ -z "$NEXT_PUBLIC_SITE_URL" ]; then
+    echo "NEXT_PUBLIC_SITE_URL is not set in the .env file."
+    exit 1
+fi
+
+# Check if required dependencies are installed
+if ! command -v python3 &> /dev/null
+then
+    echo "python3 could not be found. Please install python3."
+    exit 1
+fi
+
+if ! python3 -c "import toml" &> /dev/null
+then
+    echo "Installing 'toml' package for python3..."
+    pip3 install toml
+fi
+
+if ! python3 -c "import yaml" &> /dev/null
+then
+    echo "Installing 'PyYAML' package for python3..."
+    pip3 install PyYAML
+fi
+
+# Run the Python script to generate docker-compose.yml
+python3 << 'EOF'
 import toml
 import yaml
 import os
 
-# Read the main config.toml file
+# Read config.toml file
 with open('config.toml', 'r') as f:
     config = toml.load(f)
 
@@ -20,7 +62,22 @@ docker_compose['services']['request-directory'] = {
     },
     'environment': {},
     'ports': ['3000:3000'],
-    'depends_on': []
+    'deploy': {
+        'replicas': 1,
+    },
+    'restart': 'unless-stopped',
+    'depends_on': [],
+}
+
+# Define the Kamal Proxy service
+docker_compose['services']['proxy'] = {
+    'image': 'basecamp/kamal-proxy',
+    'ports': [
+        '127.0.0.1:80:80',
+        '127.0.0.1:443:443',
+    ],
+    'restart': 'unless-stopped',
+    'depends_on': ['request-directory'],
 }
 
 # Get database settings
@@ -34,7 +91,7 @@ if local_supabase:
     # Define the Supabase service
     docker_compose['services']['supabase'] = {
         'image': 'supabase/postgres:latest',
-        'ports': ['5432:5432', '8000:8000'],  # Expose necessary ports
+        'ports': ['5432:5432', '8000:8000'],
         'environment': {
             'POSTGRES_PASSWORD': '${SUPABASE_PASSWORD}',
             'JWT_SECRET': '${SUPABASE_JWT_SECRET}',
@@ -42,14 +99,13 @@ if local_supabase:
             'SUPABASE_JWT_SECRET': '${SUPABASE_JWT_SECRET}',
             'SUPABASE_ANON_KEY': '${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}',
             'SUPABASE_SERVICE_ROLE_KEY': '${SUPABASE_SECRET_KEY}',
-            # Add the GitHub OAuth credentials to the environment
             'GITHUB_CLIENT_ID': '${GITHUB_CLIENT_ID}',
             'GITHUB_CLIENT_SECRET': '${GITHUB_CLIENT_SECRET}',
             'STRIPE_WEBHOOK_SIGNING_SECRET': '${STRIPE_WEBHOOK_SIGNING_SECRET}',
         },
         'volumes': [
             'supabase_data:/var/lib/postgresql/data',
-            './supabase/config.toml:/supabase/config.toml'  # Mount the config.toml file
+            './supabase/config.toml:/supabase/config.toml'
         ]
     }
     docker_compose['services']['request-directory']['depends_on'].append(
@@ -75,7 +131,6 @@ if local_supabase:
     supabase_config['auth']['external']['github']['secret'] = "env(GITHUB_CLIENT_SECRET)"
 
     # Write the updated config.toml
-
     with open(supabase_config_file, 'w') as f:
         toml.dump(supabase_config, f)
 
@@ -87,12 +142,12 @@ external_api_images = {
     'nudenet': {
         'image': 'ghcr.io/notai-tech/nudenet:latest',
         'ports': ['8080:8080'],
-        'cap_add': ['SYS_RESOURCE'],  # NudeNet needs this flag to run.
+        'cap_add': ['SYS_RESOURCE'],
     },
-    # Add external APIs here
+    # Add other external APIs here
 }
 
-# These Environment Variables are added to the NextJS app service
+# Environment Variables for external APIs
 external_api_environment_variables = {
     'nudenet': {
         'NUDENET_URL': 'http://nudenet:8080/infer'
@@ -118,7 +173,6 @@ docker_compose['services']['request-directory']['environment'] = {
     'STRIPE_PUBLISHABLE_KEY': '${STRIPE_PUBLISHABLE_KEY}',
     'STRIPE_SECRET_KEY': '${STRIPE_SECRET_KEY}'
 }
-
 
 # Process each API
 for api_name, api_value in api_configs.items():
@@ -158,3 +212,10 @@ with open('docker-compose.yml', 'w') as f:
     yaml.dump(docker_compose, f, sort_keys=False)
 
 print("docker-compose.yml has been generated successfully.")
+EOF
+
+# Run docker-compose up
+docker-compose up --build -d
+
+# Deploy using kamal-proxy with NEXT_PUBLIC_SITE_URL from .env
+docker-compose exec proxy kamal-proxy deploy reqdir --target request-directory:3000 --host "${NEXT_PUBLIC_SITE_URL}"

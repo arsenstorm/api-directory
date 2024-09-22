@@ -24,31 +24,24 @@ up the project:
 
 ```bash
 # clone the repo
-git clone https://github.com/arsenstorm/api-directory.git
-cd api-directory
+git clone https://github.com/arsenstorm/api-directory.git request-directory
+cd request-directory
 
-# install python
-sudo apt install python3
-sudo apt install python3-pip
-sudo apt install python3-venv
+# add Environment Variables
+cp .env.example .env
 
-# activate virtual environment
-python3 -m venv venv
-source venv/bin/activate
+# WARNING: You need to fill in the environment variables in the .env file
 
-# for windows, use the following command instead
-# python3 -m venv venv
-# .\venv\Scripts\activate
-
-# install dependencies
-pip install -r .github/scripts/requirements.txt
+# make the setup script executable
+chmod +x setup.sh
 
 # run the setup script
-python3 .github/scripts/generate-docker-compose.py
-
-# run the docker compose file
-docker-compose up --build -d
+./setup.sh
 ```
+
+> [!CAUTION]
+>
+> You need to fill in the environment variables in the .env file.
 
 ## Development
 
