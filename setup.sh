@@ -65,6 +65,15 @@ then
     echo "Docker has been installed."
 fi
 
+# Check if Docker daemon is running, if not, start it
+if ! sudo systemctl is-active --quiet docker; then
+    echo "Docker is not running. Starting Docker..."
+    sudo systemctl start docker
+    echo "Docker has been started."
+else
+    echo "Docker is already running."
+fi
+
 # Check if Docker Compose is installed, if not, install it
 if ! command -v docker-compose &> /dev/null
 then
