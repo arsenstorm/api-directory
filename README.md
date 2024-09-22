@@ -131,7 +131,8 @@ To deploy a new version of the application, run the following command:
 
 > [!CAUTION]
 >
-> This is not tested. I’m still working on it.
+> This is not yet a zero downtime deployment. It’s more of a 10-20 second
+> downtime. I’m working on it.
 
 ## FAQ
 
