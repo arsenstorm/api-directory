@@ -19,6 +19,65 @@ if [ -z "$NEXT_PUBLIC_SITE_URL" ]; then
     exit 1
 fi
 
+# Check if Docker is installed, if not, install it
+if ! command -v docker &> /dev/null
+then
+    echo "Docker is not installed. Installing Docker..."
+    
+    # Update the apt package index
+    sudo apt-get update
+
+    # Install packages to allow apt to use a repository over HTTPS
+    sudo apt-get install -y \
+        apt-transport-https \
+        ca-certificates \
+        curl \
+        gnupg \
+        lsb-release
+
+    # Add Docker’s official GPG key
+    sudo mkdir -p /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/$(. /etc/os-release && echo "$ID")/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+    # Use the following command to set up the repository
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+      https://download.docker.com/linux/$(. /etc/os-release && echo "$ID") \
+      $(lsb_release -cs) stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    # Update the apt package index again
+    sudo apt-get update
+
+    # Install Docker Engine, CLI, and containerd
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io
+
+    # Add current user to the docker group
+    sudo usermod -aG docker $USER
+
+    # Activate changes to groups
+    newgrp docker
+
+    echo "Docker has been installed."
+fi
+
+# Check if Docker Compose is installed, if not, install it
+if ! command -v docker-compose &> /dev/null
+then
+    echo "Docker Compose is not installed. Installing Docker Compose..."
+    
+    # Download the Docker Compose binary
+    sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    
+    # Apply executable permissions
+    sudo chmod +x /usr/local/bin/docker-compose
+    
+    # Create a symbolic link
+    sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+    echo "Docker Compose has been installed."
+fi
+
 # Check if python3 is installed, if not, install it
 if ! command -v python3 &> /dev/null
 then
@@ -238,4 +297,4 @@ EOF
 docker-compose up --build -d
 
 # Deploy using kamal-proxy with NEXT_PUBLIC_SITE_URL from .env
-docker-compose exec proxy kamal-proxy deploy reqdir --target request-directory:3000 --host "${NEXT_PUBLIC_SITE_URL}"
+docker-compose exec proxy kamal-proxy deploy main --target request-directory:3000 --host "${NEXT_PUBLIC_SITE_URL}"
