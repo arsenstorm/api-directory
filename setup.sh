@@ -297,4 +297,4 @@ EOF
 docker-compose up --build -d
 
 # Deploy using kamal-proxy with NEXT_PUBLIC_SITE_URL from .env
-docker-compose exec proxy kamal-proxy deploy main --target request-directory:3000 --host "${NEXT_PUBLIC_SITE_URL}"
+#docker-compose exec proxy kamal-proxy deploy main --target request-directory:3000 --host "${NEXT_PUBLIC_SITE_URL}"
