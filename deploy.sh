@@ -19,8 +19,28 @@ if [ -z "$NEXT_PUBLIC_SITE_URL" ]; then
     exit 1
 fi
 
+# ... existing code ...
+
+# Print the value of NEXT_PUBLIC_SITE_URL for debugging
+echo "Deploying to: ${NEXT_PUBLIC_SITE_URL}"
+
 # Run docker-compose up
 docker-compose up --build --force-recreate -d
 
-# Deploy with TLS
-docker-compose exec proxy kamal-proxy deploy main --target request-directory:3000 --host ${NEXT_PUBLIC_SITE_URL} --tls
+# Wait for containers to be ready (adjust sleep time if needed)
+echo "Waiting for containers to be ready..."
+sleep 10
+
+# Check if the proxy container is running
+if ! docker-compose ps | grep -q "proxy.*Up"; then
+    echo "Error: Proxy container is not running. Check docker-compose logs."
+    exit 1
+fi
+
+# Deploy with TLS (with added quotes and error checking)
+if ! docker-compose exec proxy kamal-proxy deploy main --target "request-directory:3000" --host "${NEXT_PUBLIC_SITE_URL}" --tls; then
+    echo "Error: Deployment failed. Check the error message above."
+    exit 1
+fi
+
+echo "Deployment completed successfully."
