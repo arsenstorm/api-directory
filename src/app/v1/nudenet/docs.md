@@ -35,6 +35,25 @@ NudeNet classifies images into one of the following categories:
 
 NudeNet also returns a bounding box around the detected parts.
 
+## Sending a request
+
+To make a request, you can either send a JSON body or use form data.
+
+### Using JSON
+
+Send a POST request to the `/v1/nudenet` endpoint with a JSON body containing
+the image URL.
+
+Sample request:
+
+```json
+{
+  "url": "https://example.com/image.jpg"
+}
+```
+
+### Response
+
 Sample response:
 
 ```json
@@ -74,23 +93,6 @@ Sample response:
     ]
   ],
   "success": true
-}
-```
-
-## Sending a request
-
-To make a request, you can either send a JSON body or use form data.
-
-### Using JSON
-
-Send a POST request to the `/v1/nudenet` endpoint with a JSON body containing
-the image URL.
-
-Sample request:
-
-```json
-{
-  "url": "https://example.com/image.jpg"
 }
 ```
 

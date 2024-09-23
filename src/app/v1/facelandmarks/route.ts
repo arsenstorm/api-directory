@@ -16,6 +16,12 @@ import { saveFile } from "@/utils/api/files/save-file";
 import { returnIsEnabled } from "@/utils/api/returning/is-enabled";
 import { returnCheckEnv } from "@/utils/api/returning/check-env";
 
+/**
+ * Running the facelandmarks API is not supported on MacOS
+ * 
+ * @param req 
+ * @returns 
+ */
 export async function POST(req: NextRequest) {
 	const authorization = req.headers.get("authorization") ?? undefined;
 
@@ -36,9 +42,9 @@ export async function POST(req: NextRequest) {
 
 	const { noSave, encrypt } = await shouldSaveEncrypt(req);
 
-	await returnIsEnabled("nudenet");
+	await returnIsEnabled("facelandmarks");
 
-	let { estimated, actual = null } = await getEstimatedCost("nudenet");
+	let { estimated, actual = null } = await getEstimatedCost("facelandmarks");
 
 	// NOTE: Since we're using a custom way of signing a user in with their API key,
 	// we need to make sure that any Supabase RLS policies are applied to the `public` role
@@ -71,7 +77,7 @@ export async function POST(req: NextRequest) {
 
 	const requestId = await logRequest({
 		userId: userData.id,
-		service: "nudenet",
+		service: "facelandmarks",
 		status: "pending",
 		encrypt,
 	});
@@ -88,7 +94,7 @@ export async function POST(req: NextRequest) {
 		await logRequest({
 			requestId,
 			userId: userData.id,
-			service: "nudenet",
+			service: "facelandmarks",
 			status: "pending",
 			requestData: body,
 			encrypt,
@@ -161,7 +167,7 @@ export async function POST(req: NextRequest) {
 		await logRequest({
 			requestId,
 			userId: userData.id,
-			service: "nudenet",
+			service: "facelandmarks",
 			status: "pending",
 			// save some data about the request because
 			// it's useful to store in the history
@@ -173,34 +179,18 @@ export async function POST(req: NextRequest) {
 		});
 	}
 
-	// Manually create the multipart/form-data body due to an issue with the API
-	// FIXME: We should create our own version of the API and use that instead
-	const boundary = `----WebKitFormBoundary${
-		Math.random().toString(36).slice(2)
-	}`;
-
-	let body = `--${boundary}\r\n`;
-	body +=
-		`Content-Disposition: form-data; name="file"; filename="${imageName}"\r\n`;
-	body += `Content-Type: ${imageType}\r\n\r\n`;
-
-	const preamble = Buffer.from(body, "utf-8");
-	const ending = Buffer.from(`\r\n--${boundary}--\r\n`, "utf-8");
-
-	const fullBody = Buffer.concat([preamble, imageBuffer, ending]);
+	const formData = new FormData();
+	const blob = new Blob([imageBuffer], { type: imageType });
+	formData.append("image", blob, imageName);
 
 	try {
 		const startTime = performance.now();
 
 		const apiResponse = await fetch(
-			process.env.NUDENET_URL ?? "http://localhost:8080/infer",
+			process.env.FACELANDMARKS_URL ?? "http://localhost:7002/landmarks",
 			{
 				method: "POST",
-				headers: {
-					"Content-Length": fullBody.length.toString(),
-					"Content-Type": `multipart/form-data; boundary=${boundary}`,
-				},
-				body: fullBody,
+				body: formData,
 			},
 		);
 
@@ -208,7 +198,7 @@ export async function POST(req: NextRequest) {
 		const duration = endTime - startTime;
 
 		if (!apiResponse.ok) {
-			throw new Error("Failed to get response from nudenet.");
+			throw new Error("Failed to get response from facelandmarks.");
 		}
 
 		const data = await apiResponse.json();
@@ -230,7 +220,7 @@ export async function POST(req: NextRequest) {
 		await logRequest({
 			requestId,
 			userId: userData.id,
-			service: "nudenet",
+			service: "facelandmarks",
 			status: "success",
 			responseData: response,
 			cost: actual ?? estimated,
@@ -245,7 +235,7 @@ export async function POST(req: NextRequest) {
 		);
 	} catch (error) {
 		const response = {
-			message: "Failed to get response from nudenet.",
+			message: "Failed to get response from facelandmarks.",
 			funds: {
 				remaining: updatedUserData?.[0]?.funds ?? null,
 				actual: 0,
@@ -257,14 +247,14 @@ export async function POST(req: NextRequest) {
 		await logRequest({
 			requestId,
 			userId: userData.id,
-			service: "nudenet",
+			service: "facelandmarks",
 			status: "failed",
 			responseData: response,
 			cost: 0, // we don't charge for failed requests
 			encrypt,
 		});
 		return NextResponse.json({
-			message: "Failed to get response from nudenet.",
+			message: "Failed to get response from facelandmarks.",
 		}, {
 			status: 400,
 		});

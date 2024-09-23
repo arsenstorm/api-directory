@@ -235,6 +235,10 @@ external_api_images = {
         'ports': ['8080:8080'],
         'cap_add': ['SYS_RESOURCE'],
     },
+    'facelandmarks': {
+        'image': 'ghcr.io/arsenstorm/facelandmarks:latest',
+        'ports': ['7002:7002'],
+    }
     # Add other external APIs here
 }
 
@@ -242,6 +246,9 @@ external_api_images = {
 external_api_environment_variables = {
     'nudenet': {
         'NUDENET_URL': 'http://nudenet:8080/infer'
+    },
+    'facelandmarks': {
+        'FACELANDMARKS_URL': 'http://facelandmarks:7002/landmarks'
     }
 }
 
