@@ -118,6 +118,7 @@ export function Inputs({
 	inputs: InputType[];
 	handleSubmit?: (data: any) => Promise<any>;
 }>) {
+	const [canBlur, setCanBlur] = useState(false);
 	const [isBlurred, setIsBlurred] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [inputForm, setInputForm] = useState<any>({});
@@ -131,11 +132,16 @@ export function Inputs({
 		setIsBlurred((prev) => !prev);
 	}, []);
 
-	const imageRef = useEventListener("click", toggleBlur);
+	const imageRef = useEventListener("click", () => {
+		if (canBlur) {
+			toggleBlur();
+		}
+	});
 
 	useEffect(() => {
 		const blurInputs = inputs.filter((input: InputType) => input.blur);
 		setIsBlurred(blurInputs.length > 0);
+		setCanBlur(blurInputs.length > 0);
 	}, [inputs]);
 
 	useEffect(() => {
@@ -247,11 +253,7 @@ export function Inputs({
 							>
 								{isLoading ? "Pending..." : "Make API Request"}
 							</Button>
-							{responseTime && (
-								<Text>
-									Time Taken: {responseTime}s
-								</Text>
-							)}
+							{responseTime && <Text>Time Taken: {responseTime}s</Text>}
 						</div>
 					</Field>
 				</FieldGroup>
