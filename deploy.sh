@@ -4,6 +4,16 @@
 SCRIPT_DIR=$(dirname "$0")
 cd "$SCRIPT_DIR"
 
+# Parse command-line arguments
+NO_CACHE=false
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --no-cache) NO_CACHE=true ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
+    esac
+    shift
+done
+
 # Check if .env file exists
 if [ ! -f ".env" ]; then
     echo ".env file not found. Please create a .env file with the necessary environment variables."
@@ -33,7 +43,13 @@ fi
 echo "Deploying to: ${CLEAN_URL}"
 
 # Run docker-compose up
-docker-compose up --build --force-recreate -d
+if [ "$NO_CACHE" = true ]; then
+    echo "Running docker-compose up with --no-cache"
+    docker-compose up --build --force-recreate --no-cache -d
+else
+    echo "Running docker-compose up with cache"
+    docker-compose up --build --force-recreate -d
+fi
 
 # Wait for containers to be ready (adjust sleep time if needed)
 echo "Waiting for containers to be ready..."
