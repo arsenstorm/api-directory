@@ -4,8 +4,12 @@ supabase = "managed" # or "local" - for now, only use managed.
 [apis]
 enabled = true
 
-[api.nudenet] # docker run -it -p8080:8080 ghcr.io/notai-tech/nudenet:latest
+[api.nudenet]
 type = "external" # default is "internal" - since this is external, we depend on the docker container to be running
+enabled = true
+
+[api.facelandmarks]
+type = "external"
 enabled = true
 
 [api.create-video] # this is an internal API (i.e. It runs on the NextJS app)
