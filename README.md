@@ -3,6 +3,12 @@
 Request Directory is an open-source alternative to RapidAPI, allowing you to use
 APIs for a variety of tasks with a single API key!
 
+> [!TIP]
+>
+> If you’re looking to see the source code for the `external` APIs, you can find
+> them in
+> [this repository](https://github.com/arsenstorm/request-directory-apis).
+
 ## Getting Started
 
 To get started with self-hosting Request Directory, you have two options:
