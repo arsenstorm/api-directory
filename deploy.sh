@@ -45,7 +45,8 @@ echo "Deploying to: ${CLEAN_URL}"
 # Run docker-compose up
 if [ "$NO_CACHE" = true ]; then
     echo "Running docker-compose up with --no-cache"
-    docker-compose up --build --force-recreate --no-cache -d
+    docker-compose build --no-cache
+    docker-compose up --force-recreate -d
 else
     echo "Running docker-compose up with cache"
     docker-compose up --build --force-recreate -d
