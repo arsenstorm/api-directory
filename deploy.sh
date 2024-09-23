@@ -44,6 +44,8 @@ echo "Deploying to: ${CLEAN_URL}"
 
 # Run docker-compose up
 if [ "$NO_CACHE" = true ]; then
+    echo "Pulling latest images"
+    docker-compose pull
     echo "Running docker-compose up with --no-cache"
     docker-compose build --no-cache --pull
     docker-compose up --force-recreate -d
