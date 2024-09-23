@@ -4,7 +4,7 @@ export const facelandmarksConfig = {
   details: {
     name: "Face Landmarks",
     oneLiner: "Returns facial landmarks identified in the image.",
-    tag: "Vision",
+    tag: "Coming Soon",
   },
   pricing: {
     estimated: 0.001, // roughly $0.0001 per image

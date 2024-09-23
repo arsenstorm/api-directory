@@ -22,6 +22,7 @@ export async function getFileUrl({
   );
 
   if (error) {
+    // TODO: check error (message: 'Bucket not found')
     return {
       url: null,
       error: error,
