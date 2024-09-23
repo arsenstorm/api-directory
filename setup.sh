@@ -245,7 +245,9 @@ external_api_images = {
         'deploy': {
             'replicas': 1,
             'resources': {
-                'memory': '512M',
+                'limits': {
+                    'memory': '512M',
+                },
             },
         },
         'restart': 'unless-stopped',
