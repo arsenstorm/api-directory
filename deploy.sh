@@ -47,12 +47,11 @@ if [ "$NO_CACHE" = true ]; then
     echo "Pulling latest images"
     docker-compose pull
     echo "Running docker-compose up with --no-cache"
-    docker-compose build --no-cache --pull
-    docker-compose up --force-recreate -d
 else
     echo "Running docker-compose up with cache"
-    docker-compose up --build --force-recreate -d
 fi
+
+docker-compose up --build --force-recreate -d
 
 # Wait for containers to be ready (adjust sleep time if needed)
 echo "Waiting for containers to be ready..."
