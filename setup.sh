@@ -244,6 +244,7 @@ external_api_images = {
         'ports': ['7002:7002'],
         'deploy': {
             'replicas': 1,
+            'resources': {
                 'memory': '512M',
             },
         },
