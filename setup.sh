@@ -234,10 +234,20 @@ external_api_images = {
         'image': 'ghcr.io/notai-tech/nudenet:latest',
         'ports': ['8080:8080'],
         'cap_add': ['SYS_RESOURCE'],
+        'deploy': {
+            'replicas': 1,
+        },
+        'restart': 'unless-stopped',
     },
     'facelandmarks': {
         'image': 'ghcr.io/arsenstorm/facelandmarks:latest',
         'ports': ['7002:7002'],
+        'deploy': {
+            'replicas': 1,
+                'memory': '512M',
+            },
+        },
+        'restart': 'unless-stopped',
     }
     # Add other external APIs here
 }
@@ -291,6 +301,10 @@ for api_name, api_value in api_configs.items():
                 service_config['cap_add'] = external_api['cap_add']
             if 'privileged' in external_api:
                 service_config['privileged'] = external_api['privileged']
+            if 'deploy' in external_api:
+                service_config['deploy'] = external_api['deploy']
+            if 'restart' in external_api:
+                service_config['restart'] = external_api['restart']
 
             docker_compose['services'][service_name] = service_config
             docker_compose['services']['request-directory']['depends_on'].append(
