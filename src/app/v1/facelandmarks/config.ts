@@ -19,7 +19,7 @@ export const facelandmarksConfig = {
       id: "image",
       type: "image",
       name: "Input Image",
-      blur: true,
+      blur: false,
       description: "The image to identify landmarks in.",
       required: true,
     },
