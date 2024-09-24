@@ -334,5 +334,5 @@ echo "docker-compose.yml has been generated successfully."
 chmod +x ./deploy.sh
 
 echo "Starting deployment..."
-./deploy.sh
+./deploy.sh --no-cache
 echo "Deployment completed."
