@@ -18,16 +18,18 @@ import { returnCheckEnv } from "@/utils/api/returning/check-env";
 
 /**
  * Running the facelandmarks API is not supported on MacOS
- * 
- * @param req 
- * @returns 
+ *
+ * @param req
+ * @returns
  */
 export async function POST(req: NextRequest) {
 	const authorization = req.headers.get("authorization") ?? undefined;
 
 	const supabase = createClient(authorization);
 
-	const { data: { user } } = await supabase.auth.getUser();
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
 
 	if (!user) {
 		return NextResponse.json(
@@ -49,24 +51,32 @@ export async function POST(req: NextRequest) {
 	// NOTE: Since we're using a custom way of signing a user in with their API key,
 	// we need to make sure that any Supabase RLS policies are applied to the `public` role
 	// and not the `authenticated` role.
-	const { data: userData, error: userError } = await supabase.from("users")
-		.select("id, funds").single();
+	const { data: userData, error: userError } = await supabase
+		.from("users")
+		.select("id, funds")
+		.single();
 
 	if (userError) {
 		console.error(userError);
-		return NextResponse.json({
-			message: "Failed to get user funds.",
-		}, {
-			status: 400,
-		});
+		return NextResponse.json(
+			{
+				message: "Failed to get user funds.",
+			},
+			{
+				status: 400,
+			},
+		);
 	}
 
 	if (userData.funds - estimated < 0) {
-		return NextResponse.json({
-			message: "You don’t have enough credits.",
-		}, {
-			status: 400,
-		});
+		return NextResponse.json(
+			{
+				message: "You don’t have enough credits.",
+			},
+			{
+				status: 400,
+			},
+		);
 	}
 
 	// NOTE: If `actual` is null, we'll subtract the estimated cost,
@@ -103,35 +113,44 @@ export async function POST(req: NextRequest) {
 		const { url } = body;
 
 		if (!url) {
-			return NextResponse.json({
-				message: "You haven't provided a URL. The `url` field is required.",
-			}, {
-				status: 400,
-			});
+			return NextResponse.json(
+				{
+					message: "You haven't provided a URL. The `url` field is required.",
+				},
+				{
+					status: 400,
+				},
+			);
 		}
 
 		// Download the image from the URL
 		const imageResponse = await fetch(url);
 		if (!imageResponse.ok) {
-			return NextResponse.json({ message: "Failed to fetch image from URL" }, {
-				status: 400,
-			});
+			return NextResponse.json(
+				{ message: "Failed to fetch image from URL" },
+				{
+					status: 400,
+				},
+			);
 		}
 
 		imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
 		imageName = new URL(url).pathname.split("/").pop() ?? "image";
-		imageType = imageResponse.headers.get("content-type") ??
-			"application/octet-stream";
+		imageType =
+			imageResponse.headers.get("content-type") ?? "application/octet-stream";
 	} else {
 		const requestFormData = await req.formData();
 		const image = requestFormData.get("image") as File;
 		if (!image) {
-			return NextResponse.json({
-				message:
-					"You haven't provided an image. The `image` field is required.",
-			}, {
-				status: 400,
-			});
+			return NextResponse.json(
+				{
+					message:
+						"You haven't provided an image. The `image` field is required.",
+				},
+				{
+					status: 400,
+				},
+			);
 		}
 
 		const arrayBuffer = await image.arrayBuffer();
@@ -203,8 +222,40 @@ export async function POST(req: NextRequest) {
 
 		const data = await apiResponse.json();
 
+		if (data?.image) {
+			// we've got a base64 encoded image back
+			// we should save that to the database as well
+			const imageBuffer = Buffer.from(data.image, "base64");
+			const imageName = `${requestId}-facelandmarks.png`;
+			const imageType = "image/png";
+
+			const { url, error } = await saveFile({
+				file: {
+					buffer: imageBuffer,
+					name: imageName,
+					type: imageType,
+				},
+				userId: userData.id,
+				requestId,
+				returnUrl: true,
+			});
+
+			if (error) {
+				return NextResponse.json(
+					{
+						message: "Failed to save facelandmarks image to storage.",
+					},
+					{
+						status: 400,
+					},
+				);
+			}
+
+			data.image = url;
+		}
+
 		// Example with calculating the actual cost
-		actual = Number(((duration * (estimated / 1000)) || estimated).toFixed(10));
+		actual = Number((duration * (estimated / 1000) || estimated).toFixed(10));
 
 		// update funds
 		await updateFunds(userData, actual, 0);
@@ -227,12 +278,9 @@ export async function POST(req: NextRequest) {
 			encrypt,
 		});
 
-		return NextResponse.json(
-			response,
-			{
-				status: 200,
-			},
-		);
+		return NextResponse.json(response, {
+			status: 200,
+		});
 	} catch (error) {
 		const response = {
 			message: "Failed to get response from facelandmarks.",
@@ -253,10 +301,13 @@ export async function POST(req: NextRequest) {
 			cost: 0, // we don't charge for failed requests
 			encrypt,
 		});
-		return NextResponse.json({
-			message: "Failed to get response from facelandmarks.",
-		}, {
-			status: 400,
-		});
+		return NextResponse.json(
+			{
+				message: "Failed to get response from facelandmarks.",
+			},
+			{
+				status: 400,
+			},
+		);
 	}
 }
