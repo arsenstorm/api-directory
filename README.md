@@ -5,7 +5,7 @@ APIs for a variety of tasks with a single API key!
 
 > [!NOTE]
 >
-> Since submitting Request.Directory the Supabase Hackathon, I've made several updates.
+> Since submitting Request.Directory to the Supabase Hackathon, I've made several updates.
 > To view this repository at the time of submission, click 
 > [here](https://github.com/arsenstorm/api-directory/tree/1263c8689329ffd18d24a868507e36df1f0a21de).
 
