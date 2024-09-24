@@ -709,7 +709,7 @@ export function APIHistory() {
 					)}
 				</TableBody>
 			</Table>
-			<Dialog open={!!viewHistory} onClose={() => setViewHistory(null)}>
+			<Dialog open={!!viewHistory} onClose={() => setViewHistory(null)} size="5xl">
 				<DialogTitle>Request Details</DialogTitle>
 				<DialogDescription>
 					Below are the details of the request.
