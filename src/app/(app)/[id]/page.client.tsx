@@ -1,7 +1,6 @@
 "use client";
 
 // UI
-import { Subheading } from "@/components/ui/heading";
 import { Code, Text } from "@/components/ui/text";
 import {
 	Description,
@@ -238,7 +237,9 @@ export function Inputs({
 									onChange={(e) => {
 										if (input.type === "file" || input.type === "image") {
 											const file = e.target.files?.[0] ?? null;
-											const fileUrl = file ? URL.createObjectURL(file) : null;
+											const fileUrl = file
+												? encodeURI(URL.createObjectURL(file))
+												: null;
 
 											// Clean up the old URL
 											if (inputForm[input.id]?.fileUrl) {
@@ -277,6 +278,27 @@ export function Output({
 	output,
 	config,
 }: { readonly output: any; readonly config?: OutputType[] }) {
+	const [canBlur, setCanBlur] = useState<string[]>([]);
+	const [isBlurred, setIsBlurred] = useState(false);
+
+	const toggleBlur = useCallback(() => {
+		setIsBlurred((prev) => !prev);
+	}, []);
+
+	const outputImageRef = useEventListener("click", () => {
+		if (canBlur) {
+			toggleBlur();
+		}
+	});
+
+	useEffect(() => {
+		const blurInputs =
+			config?.filter((output: OutputType) => output.blur) ?? [];
+		setIsBlurred(blurInputs.length > 0);
+		setCanBlur(blurInputs.map((output: OutputType) => output.id));
+		console.log(blurInputs);
+	}, [config]);
+
 	return (
 		<div className="flex flex-col gap-2 col-span-1 max-w-full">
 			<Fieldset>
@@ -298,17 +320,22 @@ export function Output({
 										<Description>{configOutput.description}</Description>
 									)}
 									<div className="p-2 rounded-lg border bg-white my-2">
-										<Image
-											src={output?.[id]}
-											alt={configOutput.name ?? "Output Image"}
-											width={100}
-											height={100}
-											className={clsx(
-												"object-contain w-full h-96 rounded-md",
-												output?.[id] ? "" : "hidden",
+										<div ref={outputImageRef}>
+											{output?.[id] && (
+												<Image
+													src={output[id]}
+													alt={configOutput.name ?? "Output Image"}
+													width={100}
+													height={100}
+													className={clsx(
+														"object-contain w-full h-96 rounded-md",
+														output?.[id] ? "" : "hidden",
+														canBlur?.includes(id) && isBlurred ? "blur-lg" : "",
+													)}
+													unoptimized
+												/>
 											)}
-											unoptimized
-										/>
+										</div>
 										<div
 											className={clsx(
 												"flex items-center justify-center min-h-24",

@@ -111,10 +111,10 @@ Details about the NudeNet API can be found
 To start the NudeNet API, run the following command:
 
 ```bash
-docker run -it -p8080:8080 ghcr.io/notai-tech/nudenet:latest
+docker run -it -p 7001:7001 ghcr.io/arsenstorm/nudenet:latest
 ```
 
-This will make the API available at `http://localhost:8080/infer`.
+This will make the API available at `http://localhost:7001/infer`.
 
 Request Directory uses this API locally at `http://localhost:3000/v1/nudenet` or
 `https://request.directory/v1/nudenet` in production.
@@ -185,3 +185,5 @@ docker-compose down
 ```
 
 And then open a new terminal window before running `bun dev` again.
+
+<sub>Copyright © 2024 Arsen Shkrumelyak. All rights reserved.</sub>

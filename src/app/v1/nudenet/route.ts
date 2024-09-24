@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
 
 	const supabase = createClient(authorization);
 
-	const { data: { user } } = await supabase.auth.getUser();
+	const {
+		data: { user },
+	} = await supabase.auth.getUser();
 
 	if (!user) {
 		return NextResponse.json(
@@ -43,24 +45,32 @@ export async function POST(req: NextRequest) {
 	// NOTE: Since we're using a custom way of signing a user in with their API key,
 	// we need to make sure that any Supabase RLS policies are applied to the `public` role
 	// and not the `authenticated` role.
-	const { data: userData, error: userError } = await supabase.from("users")
-		.select("id, funds").single();
+	const { data: userData, error: userError } = await supabase
+		.from("users")
+		.select("id, funds")
+		.single();
 
 	if (userError) {
 		console.error(userError);
-		return NextResponse.json({
-			message: "Failed to get user funds.",
-		}, {
-			status: 400,
-		});
+		return NextResponse.json(
+			{
+				message: "Failed to get user funds.",
+			},
+			{
+				status: 400,
+			},
+		);
 	}
 
 	if (userData.funds - estimated < 0) {
-		return NextResponse.json({
-			message: "You don’t have enough credits.",
-		}, {
-			status: 400,
-		});
+		return NextResponse.json(
+			{
+				message: "You don’t have enough credits.",
+			},
+			{
+				status: 400,
+			},
+		);
 	}
 
 	// NOTE: If `actual` is null, we'll subtract the estimated cost,
@@ -97,35 +107,44 @@ export async function POST(req: NextRequest) {
 		const { url } = body;
 
 		if (!url) {
-			return NextResponse.json({
-				message: "You haven't provided a URL. The `url` field is required.",
-			}, {
-				status: 400,
-			});
+			return NextResponse.json(
+				{
+					message: "You haven't provided a URL. The `url` field is required.",
+				},
+				{
+					status: 400,
+				},
+			);
 		}
 
 		// Download the image from the URL
 		const imageResponse = await fetch(url);
 		if (!imageResponse.ok) {
-			return NextResponse.json({ message: "Failed to fetch image from URL" }, {
-				status: 400,
-			});
+			return NextResponse.json(
+				{ message: "Failed to fetch image from URL" },
+				{
+					status: 400,
+				},
+			);
 		}
 
 		imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
 		imageName = new URL(url).pathname.split("/").pop() ?? "image";
-		imageType = imageResponse.headers.get("content-type") ??
-			"application/octet-stream";
+		imageType =
+			imageResponse.headers.get("content-type") ?? "application/octet-stream";
 	} else {
 		const requestFormData = await req.formData();
 		const image = requestFormData.get("image") as File;
 		if (!image) {
-			return NextResponse.json({
-				message:
-					"You haven't provided an image. The `image` field is required.",
-			}, {
-				status: 400,
-			});
+			return NextResponse.json(
+				{
+					message:
+						"You haven't provided an image. The `image` field is required.",
+				},
+				{
+					status: 400,
+				},
+			);
 		}
 
 		const arrayBuffer = await image.arrayBuffer();
@@ -173,34 +192,23 @@ export async function POST(req: NextRequest) {
 		});
 	}
 
-	// Manually create the multipart/form-data body due to an issue with the API
-	// FIXME: We should create our own version of the API and use that instead
-	const boundary = `----WebKitFormBoundary${
-		Math.random().toString(36).slice(2)
-	}`;
+	const formData = new FormData();
 
-	let body = `--${boundary}\r\n`;
-	body +=
-		`Content-Disposition: form-data; name="file"; filename="${imageName}"\r\n`;
-	body += `Content-Type: ${imageType}\r\n\r\n`;
-
-	const preamble = Buffer.from(body, "utf-8");
-	const ending = Buffer.from(`\r\n--${boundary}--\r\n`, "utf-8");
-
-	const fullBody = Buffer.concat([preamble, imageBuffer, ending]);
+	// TODO: Add support for users passing in a threshold, and other options
+	formData.append(
+		"image",
+		new Blob([imageBuffer], { type: imageType }),
+		imageName,
+	);
 
 	try {
 		const startTime = performance.now();
 
 		const apiResponse = await fetch(
-			process.env.NUDENET_URL ?? "http://localhost:8080/infer",
+			process.env.NUDENET_URL ?? "http://localhost:7001/infer",
 			{
 				method: "POST",
-				headers: {
-					"Content-Length": fullBody.length.toString(),
-					"Content-Type": `multipart/form-data; boundary=${boundary}`,
-				},
-				body: fullBody,
+				body: formData,
 			},
 		);
 
@@ -213,8 +221,74 @@ export async function POST(req: NextRequest) {
 
 		const data = await apiResponse.json();
 
+		const { censored_image, labelled_image } = data;
+
+		if (censored_image) {
+			// we've got a base64 encoded image back
+			// we should save that to the database as well
+			const imageBuffer = Buffer.from(censored_image, "base64");
+			const imageName = `${requestId}-censored_image.png`;
+			const imageType = "image/png";
+
+			const { url, error } = await saveFile({
+				file: {
+					buffer: imageBuffer,
+					name: imageName,
+					type: imageType,
+				},
+				userId: userData.id,
+				requestId,
+				returnUrl: true,
+			});
+
+			if (error) {
+				return NextResponse.json(
+					{
+						message: "Failed to save censored nudenet image to storage.",
+					},
+					{
+						status: 400,
+					},
+				);
+			}
+
+			data.censored_image = url;
+		}
+
+		if (labelled_image) {
+			// we've got a base64 encoded image back
+			// we should save that to the database as well
+			const imageBuffer = Buffer.from(labelled_image, "base64");
+			const imageName = `${requestId}-labelled_image.png`;
+			const imageType = "image/png";
+
+			const { url, error } = await saveFile({
+				file: {
+					buffer: imageBuffer,
+					name: imageName,
+					type: imageType,
+				},
+				userId: userData.id,
+				requestId,
+				returnUrl: true,
+			});
+
+			if (error) {
+				return NextResponse.json(
+					{
+						message: "Failed to save labelled nudenet image to storage.",
+					},
+					{
+						status: 400,
+					},
+				);
+			}
+
+			data.labelled_image = url;
+		}
+
 		// Example with calculating the actual cost
-		actual = Number(((duration * (estimated / 1000)) || estimated).toFixed(10));
+		actual = Number((duration * (estimated / 1000) || estimated).toFixed(10));
 
 		// update funds
 		await updateFunds(userData, actual, 0);
@@ -237,12 +311,9 @@ export async function POST(req: NextRequest) {
 			encrypt,
 		});
 
-		return NextResponse.json(
-			response,
-			{
-				status: 200,
-			},
-		);
+		return NextResponse.json(response, {
+			status: 200,
+		});
 	} catch (error) {
 		const response = {
 			message: "Failed to get response from nudenet.",
@@ -263,10 +334,13 @@ export async function POST(req: NextRequest) {
 			cost: 0, // we don't charge for failed requests
 			encrypt,
 		});
-		return NextResponse.json({
-			message: "Failed to get response from nudenet.",
-		}, {
-			status: 400,
-		});
+		return NextResponse.json(
+			{
+				message: "Failed to get response from nudenet.",
+			},
+			{
+				status: 400,
+			},
+		);
 	}
 }

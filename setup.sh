@@ -231,8 +231,8 @@ api_configs = config.get('api', {})
 # Define mapping from external API names to images and ports
 external_api_images = {
     'nudenet': {
-        'image': 'ghcr.io/notai-tech/nudenet:latest',
-        'ports': ['8080:8080'],
+        'image': 'ghcr.io/arsenstorm/nudenet:latest',
+        'ports': ['7001:7001'],
         'cap_add': ['SYS_RESOURCE'],
         'deploy': {
             'replicas': 1,
@@ -258,7 +258,7 @@ external_api_images = {
 # Environment Variables for external APIs
 external_api_environment_variables = {
     'nudenet': {
-        'NUDENET_URL': 'http://nudenet:8080/infer'
+        'NUDENET_URL': 'http://nudenet:7001/infer'
     },
     'facelandmarks': {
         'FACELANDMARKS_URL': 'http://facelandmarks:7002/landmarks'
