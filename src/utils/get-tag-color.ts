@@ -29,8 +29,10 @@ export function getTagColor(tag: string): TagColor {
 			return "blue";
 		case "Vision":
 			return "cyan";
+		case "Audio":
+			return "lime";
 		case "Coming Soon":
-			return "amber";
+			return "fuchsia";
 		default:
 			return "zinc";
 	}

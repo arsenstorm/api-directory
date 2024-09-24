@@ -246,7 +246,7 @@ external_api_images = {
             'replicas': 1,
             'resources': {
                 'limits': {
-                    'memory': '512M',
+                    'memory': '3Gi',
                 },
             },
         },
