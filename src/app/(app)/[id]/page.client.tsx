@@ -49,6 +49,14 @@ export interface InputType {
 	blur?: boolean;
 }
 
+export interface OutputType {
+	id: string;
+	type: "image";
+	name?: string;
+	blur?: boolean;
+	description?: string;
+}
+
 export function Playground({
 	config,
 	id,
@@ -56,6 +64,7 @@ export function Playground({
 	readonly config: {
 		readonly request: { method: string; type: string };
 		readonly inputs: InputType[];
+		readonly outputs?: OutputType[];
 	};
 	readonly id: string;
 }) {
@@ -106,7 +115,9 @@ export function Playground({
 	return (
 		<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 			<Inputs inputs={config?.inputs} handleSubmit={handleSubmit} />
-			<Output output={response} />
+			<div className="col-span-1 max-w-full">
+				<Output output={response} config={config?.outputs} />
+			</div>
 		</div>
 	);
 }
@@ -262,18 +273,69 @@ export function Inputs({
 	);
 }
 
-export function Output({ output }: { readonly output: any }) {
+export function Output({
+	output,
+	config,
+}: { readonly output: any; readonly config?: OutputType[] }) {
 	return (
-		<div className="flex flex-col gap-2">
-			<Subheading level={3}>Output</Subheading>
-			<Text>The response from the API.</Text>
-			<div className="group bg-white rounded-2xl">
-				<div className="relative">
-					<Markdown className="prose prose-zinc overflow-x-auto p-4 text-xs w-full">
-						{`\`\`\`json\n${JSON.stringify(output, null, 2)}\n\`\`\``}
-					</Markdown>
-				</div>
-			</div>
+		<div className="flex flex-col gap-2 col-span-1 max-w-full">
+			<Fieldset>
+				<Legend>Outputs</Legend>
+				<Text>The response from the API.</Text>
+				<FieldGroup className="max-w-full">
+					{config?.map((configOutput: OutputType) => {
+						const id = configOutput.id;
+						const type = configOutput.type;
+
+						if (type === "image") {
+							return (
+								<Field key={id}>
+									<Label>
+										{configOutput.name}{" "}
+										<Code className="ml-2">{configOutput.id}</Code>
+									</Label>
+									{configOutput.description && (
+										<Description>{configOutput.description}</Description>
+									)}
+									<div className="p-2 rounded-lg border bg-white my-2">
+										<Image
+											src={output?.[id]}
+											alt={configOutput.name ?? "Output Image"}
+											width={100}
+											height={100}
+											className={clsx(
+												"object-contain w-full h-96 rounded-md",
+												output?.[id] ? "" : "hidden",
+											)}
+											unoptimized
+										/>
+										<div
+											className={clsx(
+												"flex items-center justify-center min-h-24",
+												output?.[id] ? "hidden" : "",
+											)}
+										>
+											<Text>Output Preview</Text>
+										</div>
+									</div>
+								</Field>
+							);
+						}
+
+						return null;
+					})}
+				</FieldGroup>
+			</Fieldset>
+			<Field className="max-w-full">
+				<Label>
+					API Output
+					<Code className="ml-2">json</Code>
+				</Label>
+				<Description>The JSON output from the API.</Description>
+				<Markdown className="prose prose-zinc overflow-x-auto text-xs w-full mt-2">
+					{`\`\`\`json\n${JSON.stringify(output, null, 2)}\n\`\`\``}
+				</Markdown>
+			</Field>
 		</div>
 	);
 }

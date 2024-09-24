@@ -21,4 +21,11 @@ export interface APIConfig {
     description?: string;
     required?: boolean;
   }[];
+  outputs?: {
+    id: string;
+    type: string;
+    name: string;
+    blur?: boolean;
+    description?: string;
+  }[];
 }
