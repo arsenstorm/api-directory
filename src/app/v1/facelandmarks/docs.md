@@ -1,6 +1,7 @@
 # Face Landmarks API
 
-The Face Landmarks API is a simple visual classifier that identifies a face's landmarks and returns them.
+The Face Landmarks API is a simple visual classifier that identifies a face's
+landmarks and returns them.
 
 ## Sending a request
 
@@ -8,8 +9,8 @@ To make a request, you can either send a JSON body or use form data.
 
 ### Using JSON
 
-Send a POST request to the `/v1/facelandmarks` endpoint with a JSON body containing
-the image URL.
+Send a POST request to the `/v1/facelandmarks` endpoint with a JSON body
+containing the image URL.
 
 Sample request:
 
@@ -65,7 +66,7 @@ curl -X POST https://request.directory/v1/facelandmarks \
       "y": 438
     }
   },
-  "image": "/9j/4AAQSkZJRgA...", // shortened for brevity
+  "image": "https://xjzkfvupajmegrueevjp.supabase.co/storage/...", // shortened for brevity
   "landmarks": [
     {
       "x": 362,
@@ -81,7 +82,25 @@ curl -X POST https://request.directory/v1/facelandmarks \
 }
 ```
 
+### Returned Image URL
+
+The returned image URL is a direct link to the image stored in Supabase. It is
+valid for 24 hours, after which it will expire and be deleted.
+
+In the non-hosted version, the image will be a base64 encoded string.
+
+### Bounds, Confidence, and Landmarks
+
+The `bounds` field contains the bounding box of the face in the image. 
+
+The `confidence` field contains the confidence score of the face detection model.
+
+The `face` field contains the basic identifiers of the face.
+
+The `landmarks` field contains exactly 98 facial landmarks that can be used
+to create a face template.
+
 ## Notes
 
-The version of Face Landmarks used in Request Directory is open-source and available on [GitHub](https://github.com/arsenstorm/request-directory-apis).
-
+The version of Face Landmarks used in Request Directory is open-source and
+available on [GitHub](https://github.com/arsenstorm/request-directory-apis).
