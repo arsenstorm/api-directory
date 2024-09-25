@@ -203,8 +203,12 @@ export async function POST(req: NextRequest) {
 	try {
 		const startTime = performance.now();
 
+		const url = process.env.AGEANDGENDER_URL ?? "http://localhost:7003/infer";
+
+		console.log("url", url);
+
 		const apiResponse = await fetch(
-			process.env.AGEANDGENDER_URL ?? "http://localhost:7003/infer",
+			url,
 			{
 				method: "POST",
 				body: formData,
