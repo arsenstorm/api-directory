@@ -4,6 +4,16 @@
 SCRIPT_DIR=$(dirname "$0")
 cd "$SCRIPT_DIR"
 
+# Parse command-line arguments
+NO_CACHE=false
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        --no-cache) NO_CACHE=true ;;
+        *) echo "Unknown parameter: $1"; exit 1 ;;
+    esac
+    shift
+done
+
 # Check if .env file exists
 if [ ! -f ".env" ]; then
     echo ".env file not found. Please create a .env file with the necessary environment variables."
@@ -251,7 +261,20 @@ external_api_images = {
             },
         },
         'restart': 'unless-stopped',
-    }
+    },
+    'ageandgender': {
+        'image': 'ghcr.io/arsenstorm/ageandgender:latest',
+        'ports': ['7003:7003'],
+        'deploy': {
+            'replicas': 1,
+            'resources': {
+                'limits': {
+                    'memory': '256M',
+                },
+            },
+        },
+        'restart': 'unless-stopped',
+    },
     # Add other external APIs here
 }
 
@@ -262,6 +285,9 @@ external_api_environment_variables = {
     },
     'facelandmarks': {
         'FACELANDMARKS_URL': 'http://facelandmarks:7002/landmarks'
+    },
+    'ageandgender': {
+        'AGEANDGENDER_URL': 'http://ageandgender:7003/infer'
     }
 }
 
@@ -334,5 +360,9 @@ echo "docker-compose.yml has been generated successfully."
 chmod +x ./deploy.sh
 
 echo "Starting deployment..."
-./deploy.sh --no-cache
+if [ "$NO_CACHE" = true ]; then
+    ./deploy.sh --no-cache
+else
+    ./deploy.sh
+fi
 echo "Deployment completed."
