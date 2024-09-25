@@ -315,6 +315,8 @@ export async function POST(req: NextRequest) {
 			status: 200,
 		});
 	} catch (error) {
+		console.error(error);
+
 		const response = {
 			message: "Failed to get response from nudenet.",
 			funds: {

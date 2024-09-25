@@ -280,6 +280,8 @@ export async function POST(req: NextRequest) {
 			status: 200,
 		});
 	} catch (error) {
+		console.error(error);
+
 		const response = {
 			message: "Failed to get response from ageandgender.",
 			funds: {
@@ -299,6 +301,7 @@ export async function POST(req: NextRequest) {
 			cost: 0, // we don't charge for failed requests
 			encrypt,
 		});
+
 		return NextResponse.json(
 			{
 				message: "Failed to get response from ageandgender.",
