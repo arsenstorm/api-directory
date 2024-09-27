@@ -33,9 +33,9 @@ export default async function RootLayout({
 			</head>
 			<body className={clsx("bg-neutral-100/50", "min-h-screen flex flex-col")}>
 				<Banner />
-				<div className="px-4">
+				<div className="px-4 flex-1">
 					<Navbar config={config} />
-					<div className="flex-1">{children}</div>
+					{children}
 				</div>
 				<Footer />
 				<Toaster richColors />
