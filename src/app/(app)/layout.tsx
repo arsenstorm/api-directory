@@ -31,13 +31,13 @@ export default async function RootLayout({
 					href="https://api.fontshare.com/css?f%5B%5D=switzer@400,500,600,700&amp;display=swap"
 				/>
 			</head>
-			<body className={clsx("bg-neutral-100/50", "min-h-screen flex flex-col")}>
+			<body className={clsx("bg-neutral-100/50")}>
 				<Banner />
-				<div className="px-4 flex-1">
+				<div className="flex flex-col flex-1 min-h-screen px-4">
 					<Navbar config={config} />
-					{children}
+					<div className="flex-1">{children}</div>
+					<Footer />
 				</div>
-				<Footer />
 				<Toaster richColors />
 			</body>
 		</html>

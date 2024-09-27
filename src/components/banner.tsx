@@ -33,7 +33,9 @@ export default function Banner() {
 			/>
 			<div className="flex flex-row items-center justify-center">
 				<Text className="text-black">
-					From the Supabase team reviewing the Hackathon?{" "}
+					<span className="hidden md:inline-flex">
+						From the Supabase team reviewing the Hackathon?
+					</span>{" "}
 					<TextLink href="https://legacy.request.directory" target="_blank">
 						<Strong>
 							View Request Directory at the time of submission here!
