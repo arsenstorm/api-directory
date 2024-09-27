@@ -36,8 +36,8 @@ export default async function RootLayout({
 				<div className="px-4">
 					<Navbar config={config} />
 					<div className="flex-1">{children}</div>
-					<Footer />
 				</div>
+				<Footer />
 				<Toaster richColors />
 			</body>
 		</html>
