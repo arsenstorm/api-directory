@@ -556,6 +556,8 @@ export function APIHistory() {
 
 	const supabase = createClient();
 
+	// Note: These two useEffects must be separate otherwise we get an infinite re-render loop
+	// Fetch history on first render
 	useEffect(() => {
 		const fetchHistory = async () => {
 			const { data, error } = await supabase
@@ -573,7 +575,10 @@ export function APIHistory() {
 		};
 
 		fetchHistory();
+	}, [supabase]);
 
+	// Subscribe to realtime updates
+	useEffect(() => {
 		const channel = supabase
 			.channel("realtime-requests")
 			.on(
@@ -709,7 +714,11 @@ export function APIHistory() {
 					)}
 				</TableBody>
 			</Table>
-			<Dialog open={!!viewHistory} onClose={() => setViewHistory(null)} size="5xl">
+			<Dialog
+				open={!!viewHistory}
+				onClose={() => setViewHistory(null)}
+				size="5xl"
+			>
 				<DialogTitle>Request Details</DialogTitle>
 				<DialogDescription>
 					Below are the details of the request.
