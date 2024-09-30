@@ -8,7 +8,6 @@ import Footer from "@/components/footer";
 import { getConfig } from "@/utils/get-config";
 
 import { Toaster } from "sonner";
-import Banner from "@/components/banner";
 
 export const metadata: Metadata = {
 	title: "Request Directory",
@@ -32,7 +31,6 @@ export default async function RootLayout({
 				/>
 			</head>
 			<body className={clsx("bg-neutral-100/50")}>
-				<Banner />
 				<div className="flex flex-col flex-1 min-h-screen px-4">
 					<Navbar config={config} />
 					<div className="flex-1">{children}</div>
